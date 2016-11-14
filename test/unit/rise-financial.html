@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>rise-financial</title>
+
+  <script src="../../bower_components/webcomponentsjs/webcomponents.min.js"></script>
+  <script src="../../bower_components/web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../../rise-financial-es6.html">
+</head>
+<body>
+
+<rise-financial id="request"></rise-financial>
+
+<script>
+
+  /* global sinon, suite, test, assert, setup, teardown */
+
+  let financialRequest = document.querySelector( "#request" );
+
+  // mock logger getting display id and force handler of RC not running
+  sinon.stub( financialRequest.$.logger.$.displayId, "generateRequest", () => {
+    financialRequest.$.logger._onDisplayIdError();
+  } );
+
+  suite( "rise-financial", function() {
+
+    suite( "_isValidUsage", function() {
+
+      test( "should return true when 'standalone' or 'widget'", () => {
+        assert.isTrue( financialRequest._isValidUsage( "widget" ) );
+        assert.isTrue( financialRequest._isValidUsage( "standalone" ) );
+      } );
+
+      test( "should return false when invalid", () => {
+        assert.isFalse( financialRequest._isValidUsage( "test" ) );
+      } );
+
+    } );
+
+    suite( "ready", function() {
+      let logStub;
+
+      setup( function() {
+        logStub = sinon.stub( financialRequest.$.logger, "log" );
+      } );
+
+      teardown( function() {
+        logStub.restore();
+        financialRequest.usage = "";
+      } );
+
+      test( "should log usage", () => {
+        financialRequest.ready();
+        assert.equal( logStub.args[ 0 ][ 0 ], "component_financial_events" );
+        assert.include( JSON.stringify( logStub.args[ 0 ][ 1 ] ), "{\"event\":\"ready\",\"version\":" );
+      } );
+
+      test( "should log usage and include 'usage_type'", () => {
+        financialRequest.usage = "widget";
+        financialRequest.ready();
+        assert.equal( logStub.args[ 0 ][ 0 ], "component_financial_events" );
+        assert.include( JSON.stringify( logStub.args[ 0 ][ 1 ] ), "{\"event\":\"ready\",\"usage_type\":\"widget\",\"version\":" );
+      } );
+    } );
+
+  } );
+</script>
+</body>
+</html>
