@@ -12,6 +12,14 @@
 
       this.properties = {
         /**
+         * Type of data to fetch, either "real-time" or "historical".
+         */
+        type: {
+          type: String,
+          value: "real-time"
+        },
+
+        /**
          * The optional usage type for Rise Vision logging purposes. Options are "standalone" or "widget"
          */
         usage: {
@@ -50,6 +58,10 @@
 
       this._displayIdReceived = false;
       this._goPending = false;
+    }
+
+    _isValidType( type ) {
+      return type === "real-time" || type === "historical";
     }
 
     _isValidUsage( usage ) {

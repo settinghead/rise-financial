@@ -42,6 +42,22 @@
 
     } );
 
+    suite( "_isValidType", function() {
+
+      test( "should return true if 'type' attribute is 'real-time'", () => {
+        assert.isTrue( financialRequest._isValidType( "real-time" ) );
+      } );
+
+      test( "should return true if 'type' attribute is 'historical'", () => {
+        assert.isTrue( financialRequest._isValidType( "historical" ) );
+      } );
+
+      test( "should return false when invalid", () => {
+        assert.isFalse( financialRequest._isValidType( "test" ) );
+      } );
+
+    } );
+
     suite( "_isValidUsage", () => {
 
       test( "should return true when 'standalone' or 'widget'", () => {
