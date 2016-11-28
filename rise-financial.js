@@ -22,7 +22,7 @@ var financialVersion = "1.0.0";
       value: function beforeRegister() {
         this.is = "rise-financial";
 
-        this.propertiees = {
+        this.properties = {
           /**
            * The optional usage type for Rise Vision logging purposes. Options are "standalone" or "widget"
            */

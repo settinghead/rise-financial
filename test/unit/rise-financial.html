@@ -25,12 +25,12 @@
     financialRequest.$.logger._onDisplayIdError();
   } );
 
-   suite( "rise-financial", function() {
+  suite( "rise-financial", function() {
 
     suite( "Parameters", function() {
 
       test( "should set instrument fields array", () => {
-        assert.deepEqual( financialRequest.instrumentFields, ["last price", "net change"] );
+        assert.deepEqual( financialRequest.instrumentFields, [ "last price", "net change" ] );
       } );
     } );
 
