@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<rise-financial id="request"></rise-financial>
+<rise-financial id="request" instrument-fields='["last price", "net change"]'></rise-financial>
 
 <script>
 
@@ -25,7 +25,14 @@
     financialRequest.$.logger._onDisplayIdError();
   } );
 
-  suite( "rise-financial", function() {
+   suite( "rise-financial", function() {
+
+    suite( "Parameters", function() {
+
+      test( "should set instrument fields array", () => {
+        assert.deepEqual( financialRequest.instrumentFields, ["last price", "net change"] );
+      } );
+    } );
 
     suite( "_isValidUsage", function() {
 
@@ -64,6 +71,8 @@
         assert.equal( logStub.args[ 0 ][ 0 ], "component_financial_events" );
         assert.include( JSON.stringify( logStub.args[ 0 ][ 1 ] ), "{\"event\":\"ready\",\"usage_type\":\"widget\",\"version\":" );
       } );
+
+
     } );
 
   } );
