@@ -29,6 +29,16 @@ var financialVersion = "1.0.0";
           usage: {
             type: String,
             value: ""
+          },
+
+          /**
+           * The list of instruments fields the component should return data for
+           */
+          instrumentFields: {
+            type: Array,
+            value: function value() {
+              return [];
+            }
           }
         };
       }
