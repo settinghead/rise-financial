@@ -96,7 +96,7 @@
       } );
 
       test( "should have display id maintain default value", () => {
-        financialRequest._onDisplayIdReceived( null );
+        financialRequest._onDisplayIdReceived( {} );
         assert.equal( "preview", financialRequest.displayId );
       } );
 

@@ -65,7 +65,7 @@ var financialVersion = "1.0.0";
       value: function _onDisplayIdReceived(displayId) {
         this._displayIdReceived = true;
 
-        if (displayId && typeof displayId === "string" && displayId !== "") {
+        if (displayId && typeof displayId === "string") {
           this._setDisplayId(displayId);
         }
 
