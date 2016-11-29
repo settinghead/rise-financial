@@ -39,8 +39,21 @@ var financialVersion = "1.0.0";
             value: function value() {
               return [];
             }
+          },
+
+          /**
+           * The id of the display running this instance of the component.
+           */
+          displayId: {
+            type: String,
+            readOnly: true,
+            value: "preview"
           }
+
         };
+
+        this._displayIdReceived = false;
+        this._goPending = false;
       }
     }, {
       key: "_isValidUsage",
@@ -48,11 +61,32 @@ var financialVersion = "1.0.0";
         return usage === "standalone" || usage === "widget";
       }
     }, {
+      key: "_onDisplayIdReceived",
+      value: function _onDisplayIdReceived(displayId) {
+        this._displayIdReceived = true;
+
+        if (displayId && typeof displayId === "string") {
+          this._setDisplayId(displayId);
+        }
+
+        if (this._goPending) {
+          this._goPending = false;
+          this.go();
+        }
+      }
+    }, {
       key: "ready",
       value: function ready() {
+        var _this = this;
+
         var params = {
           event: "ready"
         };
+
+        // listen for logger display id received
+        this.$.logger.addEventListener("rise-logger-display-id", function (e) {
+          _this._onDisplayIdReceived(e.detail);
+        });
 
         // only include usage_type if it's a valid usage value
         if (this._isValidUsage(this.usage)) {
@@ -63,6 +97,21 @@ var financialVersion = "1.0.0";
 
         // log usage
         this.$.logger.log(BQ_TABLE_NAME, params);
+      }
+
+      /**
+       * Request to obtain the financial data
+       *
+       */
+
+    }, {
+      key: "go",
+      value: function go() {
+        if (this._displayIdReceived) {
+          // TODO
+        } else {
+          this._goPending = true;
+        }
       }
     }]);
 

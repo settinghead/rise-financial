@@ -65,6 +65,16 @@
         assert.include( JSON.stringify( logStub.args[ 0 ][ 1 ] ), "{\"event\":\"ready\",\"version\":" );
       } );
 
+      test( "should listen for 'rise-logger-display-id' event", () => {
+        let stub = sinon.stub( financialRequest, "_onDisplayIdReceived" );
+
+        financialRequest.ready();
+        financialRequest.$.logger._onDisplayIdResponse( null, { response: { displayId: "abc123" } } );
+        assert.isTrue( stub.calledWith( "abc123" ) );
+
+        stub.restore();
+      } );
+
       test( "should log usage and include 'usage_type'", () => {
         financialRequest.usage = "widget";
         financialRequest.ready();
@@ -72,6 +82,50 @@
         assert.include( JSON.stringify( logStub.args[ 0 ][ 1 ] ), "{\"event\":\"ready\",\"usage_type\":\"widget\",\"version\":" );
       } );
 
+    } );
+
+    suite( "_onDisplayIdReceived", () => {
+
+      teardown( () => {
+        financialRequest._setDisplayId( "preview" );
+      } );
+
+      test( "should set the display id to new value", () => {
+        financialRequest._onDisplayIdReceived( "abc123" );
+        assert.equal( "abc123", financialRequest.displayId );
+      } );
+
+      test( "should have display id maintain default value", () => {
+        financialRequest._onDisplayIdReceived( {} );
+        assert.equal( "preview", financialRequest.displayId );
+      } );
+
+      test( "should call go() if go pending", () => {
+        let goStub = sinon.stub( financialRequest, "go" );
+
+        financialRequest._goPending = true;
+        financialRequest._onDisplayIdReceived( "abc123" );
+        assert.isFalse( financialRequest._goPending );
+        assert.isTrue( goStub.calledOnce );
+
+        goStub.restore();
+      } );
+
+    } );
+
+    suite( "go", () => {
+
+      teardown( function() {
+        financialRequest._setDisplayId( "preview" );
+        financialRequest._displayIdReceived = true;
+        financialRequest._goPending = false;
+      } );
+
+      test( "should flag that a go() is pending if display id has not been received", () => {
+        financialRequest._displayIdReceived = false;
+        financialRequest.go();
+        assert.isTrue( financialRequest._goPending );
+      } );
 
     } );
 
