@@ -10,6 +10,12 @@
     beforeRegister() {
       this.is = "rise-financial";
 
+      /**
+       * Fired when a response is received.
+       *
+       * @event rise-financial-response
+       */
+
       this.properties = {
         /**
          * Type of data to fetch, either "real-time" or "historical".
@@ -58,6 +64,7 @@
 
       this._displayIdReceived = false;
       this._goPending = false;
+      this._instruments = {};
     }
 
     _isValidType( type ) {
@@ -81,6 +88,8 @@
       }
     }
 
+    /***************************************** FIREBASE *******************************************/
+
     _getInstruments() {
       if ( !this.financialList ) {
         return;
@@ -95,8 +104,51 @@
       const instruments = snapshot.val();
 
       this._instruments = instruments ? instruments : {};
+    }
 
-      console.log( this._instruments );  // eslint-disable-line no-console
+    /***************************************** REAL-TIME ******************************************/
+
+    _getRealTimeUrl() {
+      return "http://contentfinancial2.appspot.com/data";
+    }
+
+    _getRealTimeParams( instruments, fields = [] ) {
+      return Object.assign( {},
+        {
+          id: this.displayId,
+          code: this._getSymbols( instruments ),
+          tqx: "out:json;responseHandler:callback",
+        },
+        fields.length > 0 ? { tq: this._getRealTimeQueryString( fields ) } : null );
+    }
+
+    _getRealTimeQueryString( fields = [] ) {
+      if ( fields.length === 0 ) {
+        return "";
+      }
+
+      return `select ${ fields.join( "," ) }`;
+    }
+
+    _getRealTimeData( instruments, fields = [] ) {
+      const realTime = this.$.realTime;
+
+      realTime.url = this._getRealTimeUrl();
+      realTime.params = this._getRealTimeParams( instruments, fields );
+    }
+
+    _handleRealTimeData( e, resp ) {
+      if ( resp && resp.table ) {
+        this.fire( "rise-financial-response", resp.table );
+      }
+    }
+
+    _getSymbols( instruments ) {
+      const symbols = Object.keys( instruments ).map( ( key ) => {
+        return instruments[ key ].symbol;
+      } );
+
+      return symbols.join( "|" );
     }
 
     ready() {
@@ -122,6 +174,14 @@
 
       // log usage
       this.$.logger.log( BQ_TABLE_NAME, params );
+
+      if ( !this._isValidType( this.type ) ) {
+        return;
+      }
+
+      if ( this.type === "real-time" ) {
+        this._getRealTimeData();
+      }
     }
 
     attached() {

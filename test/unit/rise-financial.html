@@ -15,13 +15,38 @@
 </head>
 <body>
 
-<rise-financial id="request" financial-list="Stocks" instrument-fields='["last price", "net change"]'></rise-financial>
+<rise-financial id="request" financial-list="Stocks" instrument-fields='["lastPrice", "netChange"]'></rise-financial>
+
+<script src="../data/real-time.js"></script>
 
 <script>
 
-  /* global sinon, suite, test, assert, setup, teardown */
+  /* global sinon, suite, test, assert, setup, teardown, realTimeData */
 
-  let financialRequest = document.querySelector( "#request" );
+  const financialRequest = document.querySelector( "#request" ),
+    fields = [ "lastPrice", "netChange" ],
+    instrument = {
+      "AA?N": {
+        category: "Stocks",
+        index: 0,
+        name: "Alcoa",
+        symbol: "AA.N",
+      }
+    },
+    instruments = {
+      "AA?N": {
+        category: "Stocks",
+        index: 0,
+        name: "Alcoa",
+        symbol: "AA.N",
+      },
+      "?DJI": {
+        category: "Stocks",
+        index: 1,
+        name: "Dow Jones",
+        symbol: ".DJI",
+      }
+    };
 
   // mock logger getting display id and force handler of RC not running
   sinon.stub( financialRequest.$.logger.$.displayId, "generateRequest", () => {
@@ -37,12 +62,16 @@
       } );
 
       test( "should set instrument fields array", () => {
-        assert.deepEqual( financialRequest.instrumentFields, [ "last price", "net change" ] );
+        assert.deepEqual( financialRequest.instrumentFields, [ "lastPrice", "netChange" ] );
+      } );
+
+      test( "should set default type property", () => {
+        assert.equal( financialRequest.type, "real-time" );
       } );
 
     } );
 
-    suite( "_isValidType", function() {
+    suite( "_isValidType", () => {
 
       test( "should return true if 'type' attribute is 'real-time'", () => {
         assert.isTrue( financialRequest._isValidType( "real-time" ) );
@@ -71,6 +100,24 @@
 
     } );
 
+    suite( "_onDisplayIdReceived", () => {
+
+      teardown( () => {
+        financialRequest._setDisplayId( "preview" );
+      } );
+
+      test( "should set the display id to new value", () => {
+        financialRequest._onDisplayIdReceived( "abc123" );
+        assert.equal( "abc123", financialRequest.displayId );
+      } );
+
+      test( "should have display id maintain default value", () => {
+        financialRequest._onDisplayIdReceived( {} );
+        assert.equal( "preview", financialRequest.displayId );
+      } );
+
+    } );
+
     suite( "_getInstruments", () => {
       let spy;
 
@@ -94,7 +141,7 @@
 
         assert.equal( spy.callCount, 0 );
 
-        financialRequest.financialList = "Stocks"
+        financialRequest.financialList = "Stocks";
       } );
 
     } );
@@ -102,22 +149,13 @@
     suite( "_handleInstruments", () => {
 
       test( "should set _instruments", () => {
-        const instruments = {
-          "AA?N": {
-            category: "Stocks",
-            index: 0,
-            name: "Alcoa",
-            symbol: "AA.N"
-          }
-        };
-
         financialRequest._handleInstruments( {
           val: () => {
-            return instruments;
+            return instrument;
           }
         } );
 
-        assert.deepEqual( financialRequest._instruments, instruments );
+        assert.deepEqual( financialRequest._instruments, instrument );
       } );
 
       test( "should not set _instruments", () => {
@@ -128,6 +166,122 @@
         } );
 
         assert.deepEqual( financialRequest._instruments, {} );
+      } );
+
+    } );
+
+    suite( "_getRealTimeUrl", () => {
+
+      test( "should return URL for Financial server", () => {
+        assert.equal( financialRequest._getRealTimeUrl(), "http://contentfinancial2.appspot.com/data" );
+      } );
+
+    } );
+
+    suite( "_getRealTimeParams", () => {
+
+      test( "should return query parameters object", () => {
+        const expected = {
+          id: "preview",
+          code: "AA.N",
+          tq: "select lastPrice,netChange",
+          tqx: "out:json;responseHandler:callback",
+        };
+
+        assert.deepEqual( financialRequest._getRealTimeParams( instrument, fields ), expected );
+      } );
+
+      test( "should return query parameters object with no 'tq' property", () => {
+        const expected = {
+          id: "preview",
+          code: "AA.N",
+          tqx: "out:json;responseHandler:callback",
+        };
+
+        assert.deepEqual( financialRequest._getRealTimeParams( instrument ), expected );
+      } );
+
+    } );
+
+    suite( "_getRealTimeQueryString", () => {
+
+      test( "should return query string for fetching a specific set of fields", () => {
+        const expected = "select lastPrice,netChange";
+
+        assert.equal( financialRequest._getRealTimeQueryString( fields ), expected );
+      } );
+
+      test( "should return empty string if no parameter specified", () => {
+        assert.equal( financialRequest._getRealTimeQueryString(), "" );
+      } );
+
+    } );
+
+    suite( "_getRealTimeData", () => {
+
+      test( "should set 'url' attribute of JSONP component", () => {
+        const realTime = document.getElementById( "realTime" );
+
+        financialRequest._getRealTimeData( instruments );
+
+        assert.equal( realTime.url, "http://contentfinancial2.appspot.com/data" );
+      } );
+
+      test( "should set 'params' attribute of JSONP component for single instrument", () => {
+        const realTime = document.getElementById( "realTime" ),
+          expected = {
+            id: "preview",
+            code: "AA.N",
+            tq: "select lastPrice,netChange",
+            tqx: "out:json;responseHandler:callback",
+          };
+
+        financialRequest._getRealTimeData( instrument, fields );
+
+        assert.deepEqual( realTime.params, expected );
+      } );
+
+      test( "should set 'params' attribute of JSONP component for multiple instruments", () => {
+        const realTime = document.getElementById( "realTime" ),
+          expected = {
+            id: "preview",
+            code: "AA.N|.DJI",
+            tq: "select lastPrice,netChange",
+            tqx: "out:json;responseHandler:callback",
+          };
+
+        financialRequest._getRealTimeData( instruments, fields );
+
+        assert.deepEqual( realTime.params, expected );
+      } );
+
+    } );
+
+    suite( "_handleRealTimeData", () => {
+      const e = { stopPropagation: () => {} };
+
+      test( "should fire 'rise-financial-response' event", ( done ) => {
+        const listener = ( response ) => {
+          assert.deepEqual( response.detail, realTimeData.table );
+
+          financialRequest.removeEventListener( "rise-financial-response", listener );
+          done();
+        };
+
+        financialRequest.addEventListener( "rise-financial-response", listener );
+        financialRequest._handleRealTimeData( e, realTimeData );
+      } );
+
+    } );
+
+    suite( "_getSymbols", () => {
+
+      test( "should return empty string if no instruments", () => {
+        assert.equal( financialRequest._getSymbols( {} ), "" );
+      } );
+
+      test( "should return string of instrument symbols separated by |", () => {
+        assert.equal( financialRequest._getSymbols( instruments ), "AA.N|.DJI" );
       } );
 
     } );
@@ -170,35 +324,6 @@
         financialRequest.ready();
         assert.equal( logStub.args[ 0 ][ 0 ], "component_financial_events" );
         assert.include( JSON.stringify( logStub.args[ 0 ][ 1 ] ), "{\"event\":\"ready\",\"usage_type\":\"widget\",\"version\":" );
-      } );
-
-    } );
-
-    suite( "_onDisplayIdReceived", () => {
-
-      teardown( () => {
-        financialRequest._setDisplayId( "preview" );
-      } );
-
-      test( "should set the display id to new value", () => {
-        financialRequest._onDisplayIdReceived( "abc123" );
-        assert.equal( "abc123", financialRequest.displayId );
-      } );
-
-      test( "should have display id maintain default value", () => {
-        financialRequest._onDisplayIdReceived( {} );
-        assert.equal( "preview", financialRequest.displayId );
-      } );
-
-      test( "should call go() if go pending", () => {
-        let goStub = sinon.stub( financialRequest, "go" );
-
-        financialRequest._goPending = true;
-        financialRequest._onDisplayIdReceived( "abc123" );
-        assert.isFalse( financialRequest._goPending );
-        assert.isTrue( goStub.calledOnce );
-
-        goStub.restore();
       } );
 
     } );
