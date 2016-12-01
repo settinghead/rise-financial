@@ -32,6 +32,14 @@ var financialVersion = "1.0.0";
           },
 
           /**
+           * Name of the financial list in Financial Selector.
+           */
+          financialList: {
+            type: String,
+            value: ""
+          },
+
+          /**
            * The list of instruments fields the component should return data for
            */
           instrumentFields: {

@@ -12,7 +12,7 @@
 </head>
 <body>
 
-<rise-financial id="request" instrument-fields='["last price", "net change"]'></rise-financial>
+<rise-financial id="request" financial-list="Stocks" instrument-fields='["last price", "net change"]'></rise-financial>
 
 <script>
 
@@ -27,11 +27,16 @@
 
   suite( "rise-financial", function() {
 
-    suite( "Parameters", function() {
+    suite( "Properties", () => {
+
+      test( "should set financial list property", () => {
+        assert.equal( financialRequest.financialList, "Stocks" );
+      } );
 
       test( "should set instrument fields array", () => {
         assert.deepEqual( financialRequest.instrumentFields, [ "last price", "net change" ] );
       } );
+
     } );
 
     suite( "_isValidUsage", function() {
