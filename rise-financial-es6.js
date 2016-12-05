@@ -1,5 +1,5 @@
 ( function financial() {
-  /* global Polymer, financialVersion */
+  /* global Polymer, financialVersion, firebase, config */
 
   "use strict";
 
@@ -69,10 +69,31 @@
       }
     }
 
+    _getInstruments() {
+      if ( !this.displayId || !this.financialList ) {
+        return;
+      }
+
+      const instrumentsRef = firebase.database().ref( `lists/${ this.displayId }/${ this.financialList }` );
+
+      instrumentsRef.on( "value", ( snapshot ) => {
+        this._handleInstruments( snapshot );
+      } );
+    }
+
+    _handleInstruments( snapshot ) {
+      // TODO: Make request to financial server.
+      console.log( snapshot.val() );  // eslint-disable-line no-console
+    }
+
     ready() {
       let params = {
         event: "ready"
       };
+
+      if ( !this._firebaseApp ) {
+        this._firebaseApp = firebase.initializeApp( config );
+      }
 
       // listen for logger display id received
       this.$.logger.addEventListener( "rise-logger-display-id", ( e ) => {
@@ -96,7 +117,7 @@
      */
     go() {
       if ( this._displayIdReceived ) {
-        // TODO
+        this._getInstruments();
       } else {
         this._goPending = true;
       }

@@ -4,9 +4,15 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+/* exported config */
+var config = {
+  apiKey: "AIzaSyA_tQUKBCYzj_VJwXpRNfna0-btAZe1b-w",
+  databaseURL: "https://fir-stage.firebaseio.com"
+};
+
 var financialVersion = "1.0.0";
 (function financial() {
-  /* global Polymer, financialVersion */
+  /* global Polymer, financialVersion, firebase, config */
 
   "use strict";
 
@@ -83,17 +89,42 @@ var financialVersion = "1.0.0";
         }
       }
     }, {
+      key: "_getInstruments",
+      value: function _getInstruments() {
+        var _this = this;
+
+        if (!this.displayId || !this.financialList) {
+          return;
+        }
+
+        var instrumentsRef = firebase.database().ref("lists/" + this.displayId + "/" + this.financialList);
+
+        instrumentsRef.on("value", function (snapshot) {
+          _this._handleInstruments(snapshot);
+        });
+      }
+    }, {
+      key: "_handleInstruments",
+      value: function _handleInstruments(snapshot) {
+        // TODO: Make request to financial server.
+        console.log(snapshot.val()); // eslint-disable-line no-console
+      }
+    }, {
       key: "ready",
       value: function ready() {
-        var _this = this;
+        var _this2 = this;
 
         var params = {
           event: "ready"
         };
 
+        if (!this._firebaseApp) {
+          this._firebaseApp = firebase.initializeApp(config);
+        }
+
         // listen for logger display id received
         this.$.logger.addEventListener("rise-logger-display-id", function (e) {
-          _this._onDisplayIdReceived(e.detail);
+          _this2._onDisplayIdReceived(e.detail);
         });
 
         // only include usage_type if it's a valid usage value
@@ -116,7 +147,7 @@ var financialVersion = "1.0.0";
       key: "go",
       value: function go() {
         if (this._displayIdReceived) {
-          // TODO
+          this._getInstruments();
         } else {
           this._goPending = true;
         }
