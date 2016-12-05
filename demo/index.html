@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>rise-financial Demo</title>
+
+  <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
+
+  <link rel="import" href="../rise-financial.html">
+</head>
+<body unresolved>
+  <rise-financial financial-list="Financial" instrument-fields='["instrument", "name", "lastPrice", "netChange"]'></rise-financial>
+
+  <script>
+    const financial = document.querySelector( "rise-financial" );
+
+    financial.go();
+  </script>
+</body>
+</html>
