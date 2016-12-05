@@ -28,7 +28,7 @@
     financialRequest.$.logger._onDisplayIdError();
   } );
 
-  suite( "rise-financial", function() {
+  suite( "rise-financial", () => {
 
     suite( "Properties", () => {
 
@@ -42,7 +42,7 @@
 
     } );
 
-    suite( "_isValidUsage", function() {
+    suite( "_isValidUsage", () => {
 
       test( "should return true when 'standalone' or 'widget'", () => {
         assert.isTrue( financialRequest._isValidUsage( "widget" ) );
@@ -92,14 +92,14 @@
 
     } );
 
-    suite( "ready", function() {
+    suite( "ready", () => {
       let logStub;
 
-      setup( function() {
+      setup( () => {
         logStub = sinon.stub( financialRequest.$.logger, "log" );
       } );
 
-      teardown( function() {
+      teardown( () => {
         logStub.restore();
         financialRequest.usage = "";
       } );
@@ -165,7 +165,7 @@
 
     suite( "go", () => {
 
-      teardown( function() {
+      teardown( () => {
         financialRequest._setDisplayId( "preview" );
         financialRequest._displayIdReceived = true;
         financialRequest._goPending = false;
