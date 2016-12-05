@@ -31,8 +31,8 @@ deployment:
   staging:
     branch: /(feature|fix|chore).*/
     commands:
-      - yarn run build
+      - NODE_ENV=test yarn run build
   production:
     branch: master
     commands:
-      - yarn run build
+      - NODE_ENV=prod yarn run build
