@@ -1,4 +1,4 @@
-/* global require */
+/* global require, process */
 
 ( function gulp( console ) {
   "use strict";
@@ -8,6 +8,7 @@
     bump = require( "gulp-bump" ),
     del = require( "del" ),
     eslint = require( "gulp-eslint" ),
+    env = process.env.NODE_ENV || "prod",
     file = require( "gulp-file" ),
     gulp = require( "gulp" ),
     rename = require( "gulp-rename" ),
@@ -17,6 +18,12 @@
 
   gulp.task( "clean-bower", ( cb ) => {
     del( [ "./bower_components/**" ], cb );
+  } );
+
+  gulp.task( "config", () => {
+    return gulp.src( [ "./config/" + env + ".js" ] )
+      .pipe( rename( "config.js" ) )
+      .pipe( gulp.dest( "./config" ) );
   } );
 
   gulp.task( "lint", () => {
@@ -65,7 +72,7 @@
   } );
 
   gulp.task( "build", [ "version" ], ( cb ) => {
-    runSequence( "lint", "source", cb );
+    runSequence( "lint", "config", "source", cb );
   } );
 
   gulp.task( "default", [], () => {
