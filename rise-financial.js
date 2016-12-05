@@ -6,8 +6,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 /* exported config */
 var config = {
-  apiKey: "AIzaSyA_tQUKBCYzj_VJwXpRNfna0-btAZe1b-w",
-  databaseURL: "https://fir-stage.firebaseio.com"
+  apiKey: "AIzaSyA8VXZwqhHx4qEtV5BcBNe41r7Ra0ZThfY",
+  databaseURL: "https://fir-b3915.firebaseio.com"
 };
 
 var financialVersion = "1.0.0";
