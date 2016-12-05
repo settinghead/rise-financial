@@ -67,7 +67,7 @@
       .pipe( gulp.dest( "./" ) );
   } );
 
-  gulp.task( "test", [ "version" ], ( cb ) => {
+  gulp.task( "test", [ "version", "config" ], ( cb ) => {
     runSequence( "test:local", cb );
   } );
 
