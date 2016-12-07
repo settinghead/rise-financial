@@ -25,7 +25,7 @@ dependencies:
     - ~/.yarn-cache
 test:
   override:
-    - yarn run version
+    - yarn run rise-financial-version
     - wct
 deployment:
   staging:

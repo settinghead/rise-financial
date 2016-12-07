@@ -5,7 +5,7 @@
   "scripts": {
     "test": "gulp test",
     "build": "gulp build",
-    "version": "gulp version"
+    "rise-financial-version": "gulp version"
   },
   "directories": {
     "test": "test"
