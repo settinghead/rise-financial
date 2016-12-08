@@ -72,15 +72,6 @@
         assert( spy.calledOnce );
       } );
 
-      test( "should not call _handleInstruments if no displayId property", () => {
-        financialRequest._setDisplayId( "" );
-        financialRequest._getInstruments();
-
-        assert.equal( spy.callCount, 0 );
-
-        financialRequest._setDisplayId( "preview" );
-      } );
-
       test( "should not call _handleInstruments if no financialList attribute", () => {
         financialRequest.financialList = "";
         financialRequest._getInstruments();

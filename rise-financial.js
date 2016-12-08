@@ -38,7 +38,7 @@ var financialVersion = "1.0.0";
           },
 
           /**
-           * Name of the financial list in Financial Selector.
+           * ID of the financial list in Financial Selector.
            */
           financialList: {
             type: String,
@@ -91,17 +91,13 @@ var financialVersion = "1.0.0";
     }, {
       key: "_getInstruments",
       value: function _getInstruments() {
-        var _this = this;
-
-        if (!this.displayId || !this.financialList) {
+        if (!this.financialList) {
           return;
         }
 
-        var instrumentsRef = firebase.database().ref("lists/" + this.displayId + "/" + this.financialList);
+        var instrumentsRef = firebase.database().ref("lists/" + this.financialList + "/instruments");
 
-        instrumentsRef.on("value", function (snapshot) {
-          _this._handleInstruments(snapshot);
-        });
+        instrumentsRef.on("value", this._handleInstruments);
       }
     }, {
       key: "_handleInstruments",
@@ -112,7 +108,7 @@ var financialVersion = "1.0.0";
     }, {
       key: "ready",
       value: function ready() {
-        var _this2 = this;
+        var _this = this;
 
         var params = {
           event: "ready"
@@ -124,7 +120,7 @@ var financialVersion = "1.0.0";
 
         // listen for logger display id received
         this.$.logger.addEventListener("rise-logger-display-id", function (e) {
-          _this2._onDisplayIdReceived(e.detail);
+          _this._onDisplayIdReceived(e.detail);
         });
 
         // only include usage_type if it's a valid usage value
@@ -137,17 +133,16 @@ var financialVersion = "1.0.0";
         // log usage
         this.$.logger.log(BQ_TABLE_NAME, params);
       }
-
-      /**
-       * Request to obtain the financial data
-       *
-       */
-
+    }, {
+      key: "attached",
+      value: function attached() {
+        this._getInstruments();
+      }
     }, {
       key: "go",
       value: function go() {
         if (this._displayIdReceived) {
-          this._getInstruments();
+          // TODO
         } else {
           this._goPending = true;
         }

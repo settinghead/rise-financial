@@ -20,7 +20,7 @@
         },
 
         /**
-         * Name of the financial list in Financial Selector.
+         * ID of the financial list in Financial Selector.
          */
         financialList: {
           type: String,
@@ -70,15 +70,13 @@
     }
 
     _getInstruments() {
-      if ( !this.displayId || !this.financialList ) {
+      if ( !this.financialList ) {
         return;
       }
 
-      const instrumentsRef = firebase.database().ref( `lists/${ this.displayId }/${ this.financialList }` );
+      const instrumentsRef = firebase.database().ref( `lists/${ this.financialList }/instruments` );
 
-      instrumentsRef.on( "value", ( snapshot ) => {
-        this._handleInstruments( snapshot );
-      } );
+      instrumentsRef.on( "value", this._handleInstruments );
     }
 
     _handleInstruments( snapshot ) {
@@ -111,13 +109,13 @@
       this.$.logger.log( BQ_TABLE_NAME, params );
     }
 
-    /**
-     * Request to obtain the financial data
-     *
-     */
+    attached() {
+      this._getInstruments();
+    }
+
     go() {
       if ( this._displayIdReceived ) {
-        this._getInstruments();
+        // TODO
       } else {
         this._goPending = true;
       }
