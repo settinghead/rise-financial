@@ -75,12 +75,16 @@
       }
 
       this._instrumentsRef = firebase.database().ref( `lists/${ this.financialList }/instruments` );
+      this._handleInstruments = this._handleInstruments.bind( this );
       this._instrumentsRef.on( "value", this._handleInstruments );
     }
 
     _handleInstruments( snapshot ) {
-      // TODO: Make request to financial server.
-      console.log( snapshot.val() );  // eslint-disable-line no-console
+      const instruments = snapshot.val();
+
+      this._instruments = instruments ? instruments : {};
+
+      console.log( this._instruments );  // eslint-disable-line no-console
     }
 
     ready() {

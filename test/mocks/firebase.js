@@ -18,7 +18,6 @@ var firebase = {
                   "AA?N": {
                     category: "Stocks",
                     index: 0,
-                    logo: "",
                     name: "Alcoa",
                     symbol: "AA.N"
                   }

@@ -83,6 +83,39 @@
 
     } );
 
+    suite( "_handleInstruments", () => {
+
+      test( "should set _instruments", () => {
+        const instruments = {
+          "AA?N": {
+            category: "Stocks",
+            index: 0,
+            name: "Alcoa",
+            symbol: "AA.N"
+          }
+        };
+
+        financialRequest._handleInstruments( {
+          val: () => {
+            return instruments;
+          }
+        } );
+
+        assert.deepEqual( financialRequest._instruments, instruments );
+      } );
+
+      test( "should not set _instruments", () => {
+        financialRequest._handleInstruments( {
+          val: () => {
+            return null;
+          }
+        } );
+
+        assert.deepEqual( financialRequest._instruments, {} );
+      } );
+
+    } );
+
     suite( "ready", () => {
       let logStub;
 
