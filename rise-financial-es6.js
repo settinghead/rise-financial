@@ -74,9 +74,8 @@
         return;
       }
 
-      const instrumentsRef = firebase.database().ref( `lists/${ this.financialList }/instruments` );
-
-      instrumentsRef.on( "value", this._handleInstruments );
+      this._instrumentsRef = firebase.database().ref( `lists/${ this.financialList }/instruments` );
+      this._instrumentsRef.on( "value", this._handleInstruments );
     }
 
     _handleInstruments( snapshot ) {
@@ -111,6 +110,10 @@
 
     attached() {
       this._getInstruments();
+    }
+
+    detached() {
+      this._instrumentsRef.off( "value", this._handleInstruments );
     }
 
     go() {

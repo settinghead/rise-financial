@@ -95,9 +95,8 @@ var financialVersion = "1.0.0";
           return;
         }
 
-        var instrumentsRef = firebase.database().ref("lists/" + this.financialList + "/instruments");
-
-        instrumentsRef.on("value", this._handleInstruments);
+        this._instrumentsRef = firebase.database().ref("lists/" + this.financialList + "/instruments");
+        this._instrumentsRef.on("value", this._handleInstruments);
       }
     }, {
       key: "_handleInstruments",
@@ -137,6 +136,11 @@ var financialVersion = "1.0.0";
       key: "attached",
       value: function attached() {
         this._getInstruments();
+      }
+    }, {
+      key: "detached",
+      value: function detached() {
+        this._instrumentsRef.off("value", this._handleInstruments);
       }
     }, {
       key: "go",
