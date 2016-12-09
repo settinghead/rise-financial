@@ -9,10 +9,13 @@
   <script src="../../bower_components/web-component-tester/browser.js"></script>
 
   <link rel="import" href="../../rise-financial-es6.html">
+
+  <script src="../mocks/firebase.js"></script>
+
 </head>
 <body>
 
-<rise-financial id="request" instrument-fields='["last price", "net change"]'></rise-financial>
+<rise-financial id="request" financial-list="Stocks" instrument-fields='["last price", "net change"]'></rise-financial>
 
 <script>
 
@@ -25,16 +28,21 @@
     financialRequest.$.logger._onDisplayIdError();
   } );
 
-  suite( "rise-financial", function() {
+  suite( "rise-financial", () => {
 
-    suite( "Parameters", function() {
+    suite( "Properties", () => {
+
+      test( "should set financial list property", () => {
+        assert.equal( financialRequest.financialList, "Stocks" );
+      } );
 
       test( "should set instrument fields array", () => {
         assert.deepEqual( financialRequest.instrumentFields, [ "last price", "net change" ] );
       } );
+
     } );
 
-    suite( "_isValidUsage", function() {
+    suite( "_isValidUsage", () => {
 
       test( "should return true when 'standalone' or 'widget'", () => {
         assert.isTrue( financialRequest._isValidUsage( "widget" ) );
@@ -47,16 +55,82 @@
 
     } );
 
-    suite( "ready", function() {
+    suite( "_getInstruments", () => {
+      let spy;
+
+      setup( () => {
+        spy = sinon.spy( financialRequest, "_handleInstruments" );
+      } );
+
+      teardown( () => {
+        spy.restore();
+      } );
+
+      test( "should call _handleInstruments", () => {
+        financialRequest._getInstruments();
+
+        assert( spy.calledOnce );
+      } );
+
+      test( "should not call _handleInstruments if no financialList attribute", () => {
+        financialRequest.financialList = "";
+        financialRequest._getInstruments();
+
+        assert.equal( spy.callCount, 0 );
+
+        financialRequest.financialList = "Stocks"
+      } );
+
+    } );
+
+    suite( "_handleInstruments", () => {
+
+      test( "should set _instruments", () => {
+        const instruments = {
+          "AA?N": {
+            category: "Stocks",
+            index: 0,
+            name: "Alcoa",
+            symbol: "AA.N"
+          }
+        };
+
+        financialRequest._handleInstruments( {
+          val: () => {
+            return instruments;
+          }
+        } );
+
+        assert.deepEqual( financialRequest._instruments, instruments );
+      } );
+
+      test( "should not set _instruments", () => {
+        financialRequest._handleInstruments( {
+          val: () => {
+            return null;
+          }
+        } );
+
+        assert.deepEqual( financialRequest._instruments, {} );
+      } );
+
+    } );
+
+    suite( "ready", () => {
       let logStub;
 
-      setup( function() {
+      setup( () => {
         logStub = sinon.stub( financialRequest.$.logger, "log" );
       } );
 
-      teardown( function() {
+      teardown( () => {
         logStub.restore();
         financialRequest.usage = "";
+      } );
+
+      test( "should initialize Firebase", () => {
+        financialRequest.ready();
+        assert.isObject( financialRequest._firebaseApp );
       } );
 
       test( "should log usage", () => {
@@ -115,7 +189,7 @@
 
     suite( "go", () => {
 
-      teardown( function() {
+      teardown( () => {
         financialRequest._setDisplayId( "preview" );
         financialRequest._displayIdReceived = true;
         financialRequest._goPending = false;

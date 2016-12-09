@@ -1,5 +1,5 @@
 ( function financial() {
-  /* global Polymer, financialVersion */
+  /* global Polymer, financialVersion, firebase, config */
 
   "use strict";
 
@@ -15,6 +15,14 @@
          * The optional usage type for Rise Vision logging purposes. Options are "standalone" or "widget"
          */
         usage: {
+          type: String,
+          value: ""
+        },
+
+        /**
+         * ID of the financial list in Financial Selector.
+         */
+        financialList: {
           type: String,
           value: ""
         },
@@ -61,10 +69,32 @@
       }
     }
 
+    _getInstruments() {
+      if ( !this.financialList ) {
+        return;
+      }
+
+      this._instrumentsRef = firebase.database().ref( `lists/${ this.financialList }/instruments` );
+      this._handleInstruments = this._handleInstruments.bind( this );
+      this._instrumentsRef.on( "value", this._handleInstruments );
+    }
+
+    _handleInstruments( snapshot ) {
+      const instruments = snapshot.val();
+
+      this._instruments = instruments ? instruments : {};
+
+      console.log( this._instruments );  // eslint-disable-line no-console
+    }
+
     ready() {
       let params = {
         event: "ready"
       };
+
+      if ( !this._firebaseApp ) {
+        this._firebaseApp = firebase.initializeApp( config );
+      }
 
       // listen for logger display id received
       this.$.logger.addEventListener( "rise-logger-display-id", ( e ) => {
@@ -82,10 +112,14 @@
       this.$.logger.log( BQ_TABLE_NAME, params );
     }
 
-    /**
-     * Request to obtain the financial data
-     *
-     */
+    attached() {
+      this._getInstruments();
+    }
+
+    detached() {
+      this._instrumentsRef.off( "value", this._handleInstruments );
+    }
+
     go() {
       if ( this._displayIdReceived ) {
         // TODO

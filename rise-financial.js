@@ -4,9 +4,15 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+/* exported config */
+var config = {
+  apiKey: "AIzaSyA8VXZwqhHx4qEtV5BcBNe41r7Ra0ZThfY",
+  databaseURL: "https://fir-b3915.firebaseio.com"
+};
+
 var financialVersion = "1.0.0";
 (function financial() {
-  /* global Polymer, financialVersion */
+  /* global Polymer, financialVersion, firebase, config */
 
   "use strict";
 
@@ -27,6 +33,14 @@ var financialVersion = "1.0.0";
            * The optional usage type for Rise Vision logging purposes. Options are "standalone" or "widget"
            */
           usage: {
+            type: String,
+            value: ""
+          },
+
+          /**
+           * ID of the financial list in Financial Selector.
+           */
+          financialList: {
             type: String,
             value: ""
           },
@@ -75,6 +89,26 @@ var financialVersion = "1.0.0";
         }
       }
     }, {
+      key: "_getInstruments",
+      value: function _getInstruments() {
+        if (!this.financialList) {
+          return;
+        }
+
+        this._instrumentsRef = firebase.database().ref("lists/" + this.financialList + "/instruments");
+        this._handleInstruments = this._handleInstruments.bind(this);
+        this._instrumentsRef.on("value", this._handleInstruments);
+      }
+    }, {
+      key: "_handleInstruments",
+      value: function _handleInstruments(snapshot) {
+        var instruments = snapshot.val();
+
+        this._instruments = instruments ? instruments : {};
+
+        console.log(this._instruments); // eslint-disable-line no-console
+      }
+    }, {
       key: "ready",
       value: function ready() {
         var _this = this;
@@ -82,6 +116,10 @@ var financialVersion = "1.0.0";
         var params = {
           event: "ready"
         };
+
+        if (!this._firebaseApp) {
+          this._firebaseApp = firebase.initializeApp(config);
+        }
 
         // listen for logger display id received
         this.$.logger.addEventListener("rise-logger-display-id", function (e) {
@@ -98,12 +136,16 @@ var financialVersion = "1.0.0";
         // log usage
         this.$.logger.log(BQ_TABLE_NAME, params);
       }
-
-      /**
-       * Request to obtain the financial data
-       *
-       */
-
+    }, {
+      key: "attached",
+      value: function attached() {
+        this._getInstruments();
+      }
+    }, {
+      key: "detached",
+      value: function detached() {
+        this._instrumentsRef.off("value", this._handleInstruments);
+      }
     }, {
       key: "go",
       value: function go() {
