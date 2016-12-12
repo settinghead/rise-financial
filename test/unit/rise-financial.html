@@ -336,10 +336,33 @@
         financialRequest._goPending = false;
       } );
 
-      test( "should flag that a go() is pending if display id has not been received", () => {
+      test( "should flag that a go() is pending if display ID has not been received", () => {
         financialRequest._displayIdReceived = false;
+        financialRequest._instrumentsReceived = true;
         financialRequest.go();
+
         assert.isTrue( financialRequest._goPending );
+      } );
+
+      test( "should flag that a go() is pending if instruments have not been received", () => {
+        financialRequest._displayIdReceived = true;
+        financialRequest._instrumentsReceived = false;
+        financialRequest.go();
+
+        assert.isTrue( financialRequest._goPending );
+      } );
+
+      test( "should call _getRealTimeData() if display ID and instruments have been received", () => {
+        const spy = sinon.spy( financialRequest, "_getRealTimeData" );
+
+        financialRequest._displayIdReceived = true;
+        financialRequest._instrumentsReceived = true;
+        financialRequest.go();
+
+        assert.isFalse( financialRequest._goPending );
+        assert.isTrue( spy.calledOnce );
+
+        spy.restore();
       } );
 
     } );

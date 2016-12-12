@@ -63,6 +63,7 @@
       };
 
       this._displayIdReceived = false;
+      this._instrumentsReceived = false;
       this._goPending = false;
       this._instruments = {};
     }
@@ -82,10 +83,7 @@
         this._setDisplayId( displayId );
       }
 
-      if ( this._goPending ) {
-        this._goPending = false;
-        this.go();
-      }
+      this.go();
     }
 
     /***************************************** FIREBASE *******************************************/
@@ -104,6 +102,8 @@
       const instruments = snapshot.val();
 
       this._instruments = instruments ? instruments : {};
+      this._instrumentsReceived = true;
+      this.go();
     }
 
     /***************************************** REAL-TIME ******************************************/
@@ -174,14 +174,6 @@
 
       // log usage
       this.$.logger.log( BQ_TABLE_NAME, params );
-
-      if ( !this._isValidType( this.type ) ) {
-        return;
-      }
-
-      if ( this.type === "real-time" ) {
-        this._getRealTimeData();
-      }
     }
 
     attached() {
@@ -193,10 +185,19 @@
     }
 
     go() {
-      if ( this._displayIdReceived ) {
-        // TODO
-      } else {
+      if ( !this._displayIdReceived || !this._instrumentsReceived ) {
         this._goPending = true;
+        return;
+      }
+
+      this._goPending = false;
+
+      if ( !this._isValidType( this.type ) ) {
+        return;
+      }
+
+      if ( this.type === "real-time" ) {
+        this._getRealTimeData( this._instruments, this.instrumentFields );
       }
     }
   }
