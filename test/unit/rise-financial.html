@@ -299,6 +299,29 @@
 
     } );
 
+    suite( "_handleRealTimeError", () => {
+
+      test( "should fire rise-financial-error", ( done ) => {
+        const resp =
+          {
+            "request": {
+              "status": 404,
+              "statusText": "An error occurred"
+            }
+          },
+          listener = ( response ) => {
+            assert.deepEqual( response.detail, resp );
+
+            financialRequest.removeEventListener( "rise-financial-error", listener );
+            done();
+          };
+
+        financialRequest.addEventListener( "rise-financial-error", listener );
+        financialRequest._handleRealTimeError( {}, resp );
+      } );
+
+    } );
+
     suite( "_getSymbols", () => {
 
       test( "should return empty string if no instruments", () => {

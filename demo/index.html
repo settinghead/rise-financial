@@ -18,6 +18,10 @@
       console.log( e.detail );
     } );
 
+    financial.addEventListener( "rise-financial-error", ( e ) => {
+      console.log( e.detail );
+    } );
+
     financial.go();
   </script>
 </body>

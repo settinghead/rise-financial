@@ -16,6 +16,12 @@
        * @event rise-financial-response
        */
 
+       /**
+       * Fired when an error is received.
+       *
+       * @event rise-financial-error
+       */
+
       this.properties = {
         /**
          * Type of data to fetch, either "real-time" or "historical".
@@ -147,6 +153,10 @@
       }
 
       this.fire( "rise-financial-response", response );
+    }
+
+    _handleRealTimeError( e, resp ) {
+      this.fire( "rise-financial-error", resp );
     }
 
     _getSymbols( instruments ) {
