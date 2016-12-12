@@ -260,9 +260,20 @@
     suite( "_handleRealTimeData", () => {
       const e = { stopPropagation: () => {} };
 
-      test( "should fire 'rise-financial-response' event", ( done ) => {
+      setup( () => {
+        financialRequest._instruments = instruments;
+      } );
+
+      teardown( () => {
+        financialRequest._instruments = {};
+      } );
+
+      test( "should pass instruments and data in 'rise-financial-response' event", ( done ) => {
         const listener = ( response ) => {
-          assert.deepEqual( response.detail, realTimeData.table );
+          assert.deepEqual( response.detail, {
+            instruments: instruments,
+            data: realTimeData.table,
+          } );
 
           financialRequest.removeEventListener( "rise-financial-response", listener );
           done();
@@ -270,6 +281,20 @@
 
         financialRequest.addEventListener( "rise-financial-response", listener );
         financialRequest._handleRealTimeData( e, realTimeData );
+      } );
+
+      test( "should pass only instruments in 'rise-financial-response' event", ( done ) => {
+        const listener = ( response ) => {
+          assert.deepEqual( response.detail, {
+            instruments: instruments,
+          } );
+
+          financialRequest.removeEventListener( "rise-financial-response", listener );
+          done();
+        };
+
+        financialRequest.addEventListener( "rise-financial-response", listener );
+        financialRequest._handleRealTimeData( e, {} );
       } );
 
     } );

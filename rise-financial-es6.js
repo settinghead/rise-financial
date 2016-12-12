@@ -138,9 +138,15 @@
     }
 
     _handleRealTimeData( e, resp ) {
+      const response = {
+        instruments: this._instruments,
+      };
+
       if ( resp && resp.table ) {
-        this.fire( "rise-financial-response", resp.table );
+        response.data = resp.table;
       }
+
+      this.fire( "rise-financial-response", response );
     }
 
     _getSymbols( instruments ) {
