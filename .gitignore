@@ -2,4 +2,6 @@ node_modules/
 bower_components/
 config/config.js
 rise-financial-version.js
+rise-financial.html
+rise-financial.js
 .yo-rc.json
