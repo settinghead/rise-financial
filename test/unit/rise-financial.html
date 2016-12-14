@@ -69,6 +69,10 @@
         assert.equal( financialRequest.type, "real-time" );
       } );
 
+      test( "should set default duration property", () => {
+        assert.equal( financialRequest.duration, "1M" );
+      } );
+
     } );
 
     suite( "_isValidType", () => {

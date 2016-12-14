@@ -32,6 +32,15 @@
         },
 
         /**
+         * Interval for which data should be retrieved.
+         * Valid values are: Day, Week, 1M, 3M, 6M, 1Y, 5Y.
+         */
+        duration: {
+          type: String,
+          value: "1M"
+        },
+
+        /**
          * The optional usage type for Rise Vision logging purposes. Options are "standalone" or "widget"
          */
         usage: {
@@ -80,6 +89,15 @@
 
     _isValidUsage( usage ) {
       return usage === "standalone" || usage === "widget";
+    }
+
+    _isValidDuration( duration, type ) {
+      if ( type.toLowerCase() === "historical" ) {
+        // Parameters passed to financial server are case sensitive.
+        return [ "Day", "Week", "1M", "3M", "6M", "1Y", "5Y" ].indexOf( duration ) !== -1;
+      } else {
+        return true;
+      }
     }
 
     _onDisplayIdReceived( displayId ) {
