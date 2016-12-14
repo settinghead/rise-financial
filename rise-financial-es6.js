@@ -10,7 +10,27 @@
     beforeRegister() {
       this.is = "rise-financial";
 
+      /**
+       * Fired when a response is received.
+       *
+       * @event rise-financial-response
+       */
+
+       /**
+       * Fired when an error is received.
+       *
+       * @event rise-financial-error
+       */
+
       this.properties = {
+        /**
+         * Type of data to fetch, either "real-time" or "historical".
+         */
+        type: {
+          type: String,
+          value: "real-time"
+        },
+
         /**
          * The optional usage type for Rise Vision logging purposes. Options are "standalone" or "widget"
          */
@@ -49,7 +69,13 @@
       };
 
       this._displayIdReceived = false;
+      this._instrumentsReceived = false;
       this._goPending = false;
+      this._instruments = {};
+    }
+
+    _isValidType( type ) {
+      return type === "real-time" || type === "historical";
     }
 
     _isValidUsage( usage ) {
@@ -63,11 +89,10 @@
         this._setDisplayId( displayId );
       }
 
-      if ( this._goPending ) {
-        this._goPending = false;
-        this.go();
-      }
+      this.go();
     }
+
+    /***************************************** FIREBASE *******************************************/
 
     _getInstruments() {
       if ( !this.financialList ) {
@@ -83,8 +108,63 @@
       const instruments = snapshot.val();
 
       this._instruments = instruments ? instruments : {};
+      this._instrumentsReceived = true;
+      this.go();
+    }
 
-      console.log( this._instruments );  // eslint-disable-line no-console
+    /***************************************** REAL-TIME ******************************************/
+
+    _getRealTimeUrl() {
+      return "http://contentfinancial2.appspot.com/data";
+    }
+
+    _getRealTimeParams( instruments, fields = [] ) {
+      return Object.assign( {},
+        {
+          id: this.displayId,
+          code: this._getSymbols( instruments ),
+          tqx: "out:json;responseHandler:callback",
+        },
+        fields.length > 0 ? { tq: this._getRealTimeQueryString( fields ) } : null );
+    }
+
+    _getRealTimeQueryString( fields = [] ) {
+      if ( fields.length === 0 ) {
+        return "";
+      }
+
+      return `select ${ fields.join( "," ) }`;
+    }
+
+    _getRealTimeData( instruments, fields = [] ) {
+      const realTime = this.$.realTime;
+
+      realTime.url = this._getRealTimeUrl();
+      realTime.params = this._getRealTimeParams( instruments, fields );
+    }
+
+    _handleRealTimeData( e, resp ) {
+      const response = {
+        instruments: this._instruments,
+      };
+
+      if ( resp && resp.table ) {
+        response.data = resp.table;
+      }
+
+      this.fire( "rise-financial-response", response );
+    }
+
+    _handleRealTimeError( e, resp ) {
+      this.fire( "rise-financial-error", resp );
+    }
+
+    _getSymbols( instruments ) {
+      const symbols = Object.keys( instruments ).map( ( key ) => {
+        return instruments[ key ].symbol;
+      } );
+
+      return symbols.join( "|" );
     }
 
     ready() {
@@ -121,10 +201,19 @@
     }
 
     go() {
-      if ( this._displayIdReceived ) {
-        // TODO
-      } else {
+      if ( !this._displayIdReceived || !this._instrumentsReceived ) {
         this._goPending = true;
+        return;
+      }
+
+      this._goPending = false;
+
+      if ( !this._isValidType( this.type ) ) {
+        return;
+      }
+
+      if ( this.type === "real-time" ) {
+        this._getRealTimeData( this._instruments, this.instrumentFields );
       }
     }
   }

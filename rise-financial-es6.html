@@ -1,8 +1,18 @@
 <link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../byutv-jsonp/byutv-jsonp.html" />
 <link rel="import" href="../rise-logger/rise-logger.html">
 
 <dom-module id="rise-financial">
   <template>
+    <byutv-jsonp
+      auto
+      id="realTime"
+      callback-value="callback"
+      on-response="_handleRealTimeData"
+      on-error="_handleRealTimeError"
+      debounce-duration="300">
+    </byutv-jsonp>
+
     <rise-logger id="logger"></rise-logger>
 
     <content></content>
