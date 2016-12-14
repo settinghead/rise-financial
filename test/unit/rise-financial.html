@@ -170,14 +170,6 @@
 
     } );
 
-    suite( "_getRealTimeUrl", () => {
-
-      test( "should return URL for Financial server", () => {
-        assert.equal( financialRequest._getRealTimeUrl(), "http://contentfinancial2.appspot.com/data" );
-      } );
-
-    } );
-
     suite( "_getRealTimeParams", () => {
 
       test( "should return query parameters object", () => {
@@ -224,7 +216,7 @@
 
         financialRequest._getRealTimeData( instruments );
 
-        assert.equal( realTime.url, "http://contentfinancial2.appspot.com/data" );
+        assert.equal( realTime.url, "http://contentfinancial2-test.appspot.com/data" );
       } );
 
       test( "should set 'params' attribute of JSONP component for single instrument", () => {

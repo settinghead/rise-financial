@@ -114,10 +114,6 @@
 
     /***************************************** REAL-TIME ******************************************/
 
-    _getRealTimeUrl() {
-      return "http://contentfinancial2.appspot.com/data";
-    }
-
     _getRealTimeParams( instruments, fields = [] ) {
       return Object.assign( {},
         {
@@ -139,7 +135,7 @@
     _getRealTimeData( instruments, fields = [] ) {
       const realTime = this.$.realTime;
 
-      realTime.url = this._getRealTimeUrl();
+      realTime.url = config.financial.realTimeURL;
       realTime.params = this._getRealTimeParams( instruments, fields );
     }
 
@@ -173,7 +169,7 @@
       };
 
       if ( !this._firebaseApp ) {
-        this._firebaseApp = firebase.initializeApp( config );
+        this._firebaseApp = firebase.initializeApp( config.firebase );
       }
 
       // listen for logger display id received
