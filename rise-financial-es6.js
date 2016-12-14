@@ -112,19 +112,19 @@
       this.go();
     }
 
-    /***************************************** REAL-TIME ******************************************/
+    /***************************************** FINANCIAL ******************************************/
 
-    _getRealTimeParams( instruments, fields = [] ) {
+    _getParams( instruments, fields = [] ) {
       return Object.assign( {},
         {
           id: this.displayId,
           code: this._getSymbols( instruments ),
           tqx: "out:json;responseHandler:callback",
         },
-        fields.length > 0 ? { tq: this._getRealTimeQueryString( fields ) } : null );
+        fields.length > 0 ? { tq: this._getQueryString( fields ) } : null );
     }
 
-    _getRealTimeQueryString( fields = [] ) {
+    _getQueryString( fields = [] ) {
       if ( fields.length === 0 ) {
         return "";
       }
@@ -132,14 +132,14 @@
       return `select ${ fields.join( "," ) }`;
     }
 
-    _getRealTimeData( instruments, fields = [] ) {
-      const realTime = this.$.realTime;
+    _getData( instruments, fields = [] ) {
+      const financial = this.$.financial;
 
-      realTime.url = config.financial.realTimeURL;
-      realTime.params = this._getRealTimeParams( instruments, fields );
+      financial.url = config.financial.realTimeURL;
+      financial.params = this._getParams( instruments, fields );
     }
 
-    _handleRealTimeData( e, resp ) {
+    _handleData( e, resp ) {
       const response = {
         instruments: this._instruments,
       };
@@ -151,7 +151,7 @@
       this.fire( "rise-financial-response", response );
     }
 
-    _handleRealTimeError( e, resp ) {
+    _handleError( e, resp ) {
       this.fire( "rise-financial-error", resp );
     }
 
@@ -209,7 +209,7 @@
       }
 
       if ( this.type === "real-time" ) {
-        this._getRealTimeData( this._instruments, this.instrumentFields );
+        this._getData( this._instruments, this.instrumentFields );
       }
     }
   }
