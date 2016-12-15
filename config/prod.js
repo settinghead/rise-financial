@@ -6,5 +6,6 @@ const config = {
   },
   financial: {
     realTimeURL: "http://contentfinancial2.appspot.com/data",
+    historicalURL: "http://contentfinancial2.appspot.com/data/historical",
   }
 };

@@ -132,7 +132,7 @@
 
     /***************************************** FINANCIAL ******************************************/
 
-    _getParams( instruments, fields = [] ) {
+    _getParams( instruments, fields ) {
       return Object.assign( {},
         {
           id: this.displayId,
@@ -142,7 +142,7 @@
         fields.length > 0 ? { tq: this._getQueryString( fields ) } : null );
     }
 
-    _getQueryString( fields = [] ) {
+    _getQueryString( fields ) {
       if ( fields.length === 0 ) {
         return "";
       }
@@ -150,11 +150,22 @@
       return `select ${ fields.join( "," ) }`;
     }
 
-    _getData( instruments, fields = [] ) {
-      const financial = this.$.financial;
+    _getData( props, instruments, fields ) {
+      if ( !this._isValidType( props.type ) || !this._isValidDuration( props.duration, props.type ) ) {
+        return;
+      }
 
-      financial.url = config.financial.realTimeURL;
-      financial.params = this._getParams( instruments, fields );
+      const financial = this.$.financial,
+        params = this._getParams( instruments, fields );
+
+      if ( props.type === "real-time" ) {
+        financial.url = config.financial.realTimeURL;
+      } else {
+        params.kind = props.duration;
+        financial.url = config.financial.historicalURL;
+      }
+
+      financial.params = params;
     }
 
     _handleData( e, resp ) {
@@ -222,13 +233,14 @@
 
       this._goPending = false;
 
-      if ( !this._isValidType( this.type ) ) {
-        return;
-      }
-
-      if ( this.type === "real-time" ) {
-        this._getData( this._instruments, this.instrumentFields );
-      }
+      this._getData(
+        {
+          type: this.type,
+          duration: this.duration,
+        },
+        this._instruments,
+        this.instrumentFields
+      );
     }
   }
 

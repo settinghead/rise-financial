@@ -194,7 +194,7 @@
           tqx: "out:json;responseHandler:callback",
         };
 
-        assert.deepEqual( financialRequest._getParams( instrument ), expected );
+        assert.deepEqual( financialRequest._getParams( instrument, [] ), expected );
       } );
 
     } );
@@ -208,22 +208,33 @@
       } );
 
       test( "should return empty string if no parameter specified", () => {
-        assert.equal( financialRequest._getQueryString(), "" );
+        assert.equal( financialRequest._getQueryString( [] ), "" );
       } );
 
     } );
 
     suite( "_getData", () => {
 
-      const financial = document.getElementById( "financial" );
+      const financial = document.getElementById( "financial" ),
+        props = {
+          type: "real-time",
+          duration: "1M",
+        };
 
       setup( () => {
         financial.url = "";
         financial.params = {};
       } );
 
+      test( "should not set attributes of JSONP component for an invalid type", () => {
+        financialRequest._getData( { type: "invalid", duration: "1M" }, instruments, [] );
+
+        assert.equal( financial.url, "" );
+        assert.deepEqual( financial.params, {} );
+      } );
+
       test( "should set 'url' attribute of JSONP component", () => {
-        financialRequest._getData( instruments );
+        financialRequest._getData( props, instruments, [] );
 
         assert.equal( financial.url, "http://contentfinancial2-test.appspot.com/data" );
       } );
@@ -236,7 +247,7 @@
           tqx: "out:json;responseHandler:callback",
         };
 
-        financialRequest._getData( instrument, fields );
+        financialRequest._getData( props, instrument, fields );
 
         assert.deepEqual( financial.params, expected );
       } );
@@ -249,7 +260,7 @@
           tqx: "out:json;responseHandler:callback",
         };
 
-        financialRequest._getData( instruments, fields );
+        financialRequest._getData( props, instruments, fields );
 
         assert.deepEqual( financial.params, expected );
       } );
