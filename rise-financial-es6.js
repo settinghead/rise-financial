@@ -32,6 +32,15 @@
         },
 
         /**
+         * Interval for which data should be retrieved.
+         * Valid values are: Day, Week, 1M, 3M, 6M, 1Y, 5Y.
+         */
+        duration: {
+          type: String,
+          value: "1M"
+        },
+
+        /**
          * The optional usage type for Rise Vision logging purposes. Options are "standalone" or "widget"
          */
         usage: {
@@ -82,6 +91,15 @@
       return usage === "standalone" || usage === "widget";
     }
 
+    _isValidDuration( duration, type ) {
+      if ( type.toLowerCase() === "historical" ) {
+        // Parameters passed to financial server are case sensitive.
+        return [ "Day", "Week", "1M", "3M", "6M", "1Y", "5Y" ].indexOf( duration ) !== -1;
+      } else {
+        return true;
+      }
+    }
+
     _onDisplayIdReceived( displayId ) {
       this._displayIdReceived = true;
 
@@ -112,23 +130,19 @@
       this.go();
     }
 
-    /***************************************** REAL-TIME ******************************************/
+    /***************************************** FINANCIAL ******************************************/
 
-    _getRealTimeUrl() {
-      return "http://contentfinancial2.appspot.com/data";
-    }
-
-    _getRealTimeParams( instruments, fields = [] ) {
+    _getParams( instruments, fields ) {
       return Object.assign( {},
         {
           id: this.displayId,
           code: this._getSymbols( instruments ),
           tqx: "out:json;responseHandler:callback",
         },
-        fields.length > 0 ? { tq: this._getRealTimeQueryString( fields ) } : null );
+        fields.length > 0 ? { tq: this._getQueryString( fields ) } : null );
     }
 
-    _getRealTimeQueryString( fields = [] ) {
+    _getQueryString( fields ) {
       if ( fields.length === 0 ) {
         return "";
       }
@@ -136,14 +150,25 @@
       return `select ${ fields.join( "," ) }`;
     }
 
-    _getRealTimeData( instruments, fields = [] ) {
-      const realTime = this.$.realTime;
+    _getData( props, instruments, fields ) {
+      if ( !this._isValidType( props.type ) || !this._isValidDuration( props.duration, props.type ) ) {
+        return;
+      }
 
-      realTime.url = this._getRealTimeUrl();
-      realTime.params = this._getRealTimeParams( instruments, fields );
+      const financial = this.$.financial,
+        params = this._getParams( instruments, fields );
+
+      if ( props.type === "real-time" ) {
+        financial.url = config.financial.realTimeURL;
+      } else {
+        params.kind = props.duration;
+        financial.url = config.financial.historicalURL;
+      }
+
+      financial.params = params;
     }
 
-    _handleRealTimeData( e, resp ) {
+    _handleData( e, resp ) {
       const response = {
         instruments: this._instruments,
       };
@@ -155,7 +180,7 @@
       this.fire( "rise-financial-response", response );
     }
 
-    _handleRealTimeError( e, resp ) {
+    _handleError( e, resp ) {
       this.fire( "rise-financial-error", resp );
     }
 
@@ -173,7 +198,7 @@
       };
 
       if ( !this._firebaseApp ) {
-        this._firebaseApp = firebase.initializeApp( config );
+        this._firebaseApp = firebase.initializeApp( config.firebase );
       }
 
       // listen for logger display id received
@@ -208,13 +233,14 @@
 
       this._goPending = false;
 
-      if ( !this._isValidType( this.type ) ) {
-        return;
-      }
-
-      if ( this.type === "real-time" ) {
-        this._getRealTimeData( this._instruments, this.instrumentFields );
-      }
+      this._getData(
+        {
+          type: this.type,
+          duration: this.duration,
+        },
+        this._instruments,
+        this.instrumentFields
+      );
     }
   }
 

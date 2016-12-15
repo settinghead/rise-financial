@@ -69,6 +69,10 @@
         assert.equal( financialRequest.type, "real-time" );
       } );
 
+      test( "should set default duration property", () => {
+        assert.equal( financialRequest.duration, "1M" );
+      } );
+
     } );
 
     suite( "_isValidType", () => {
@@ -170,15 +174,7 @@
 
     } );
 
-    suite( "_getRealTimeUrl", () => {
-
-      test( "should return URL for Financial server", () => {
-        assert.equal( financialRequest._getRealTimeUrl(), "http://contentfinancial2.appspot.com/data" );
-      } );
-
-    } );
-
-    suite( "_getRealTimeParams", () => {
+    suite( "_getParams", () => {
 
       test( "should return query parameters object", () => {
         const expected = {
@@ -188,7 +184,7 @@
           tqx: "out:json;responseHandler:callback",
         };
 
-        assert.deepEqual( financialRequest._getRealTimeParams( instrument, fields ), expected );
+        assert.deepEqual( financialRequest._getParams( instrument, fields ), expected );
       } );
 
       test( "should return query parameters object with no 'tq' property", () => {
@@ -198,66 +194,80 @@
           tqx: "out:json;responseHandler:callback",
         };
 
-        assert.deepEqual( financialRequest._getRealTimeParams( instrument ), expected );
+        assert.deepEqual( financialRequest._getParams( instrument, [] ), expected );
       } );
 
     } );
 
-    suite( "_getRealTimeQueryString", () => {
+    suite( "_getQueryString", () => {
 
       test( "should return query string for fetching a specific set of fields", () => {
         const expected = "select lastPrice,netChange";
 
-        assert.equal( financialRequest._getRealTimeQueryString( fields ), expected );
+        assert.equal( financialRequest._getQueryString( fields ), expected );
       } );
 
       test( "should return empty string if no parameter specified", () => {
-        assert.equal( financialRequest._getRealTimeQueryString(), "" );
+        assert.equal( financialRequest._getQueryString( [] ), "" );
       } );
 
     } );
 
-    suite( "_getRealTimeData", () => {
+    suite( "_getData", () => {
+
+      const financial = document.getElementById( "financial" ),
+        props = {
+          type: "real-time",
+          duration: "1M",
+        };
+
+      setup( () => {
+        financial.url = "";
+        financial.params = {};
+      } );
+
+      test( "should not set attributes of JSONP component for an invalid type", () => {
+        financialRequest._getData( { type: "invalid", duration: "1M" }, instruments, [] );
+
+        assert.equal( financial.url, "" );
+        assert.deepEqual( financial.params, {} );
+      } );
 
       test( "should set 'url' attribute of JSONP component", () => {
-        const realTime = document.getElementById( "realTime" );
+        financialRequest._getData( props, instruments, [] );
 
-        financialRequest._getRealTimeData( instruments );
-
-        assert.equal( realTime.url, "http://contentfinancial2.appspot.com/data" );
+        assert.equal( financial.url, "http://contentfinancial2-test.appspot.com/data" );
       } );
 
       test( "should set 'params' attribute of JSONP component for single instrument", () => {
-        const realTime = document.getElementById( "realTime" ),
-          expected = {
-            id: "preview",
-            code: "AA.N",
-            tq: "select lastPrice,netChange",
-            tqx: "out:json;responseHandler:callback",
-          };
+        const expected = {
+          id: "preview",
+          code: "AA.N",
+          tq: "select lastPrice,netChange",
+          tqx: "out:json;responseHandler:callback",
+        };
 
-        financialRequest._getRealTimeData( instrument, fields );
+        financialRequest._getData( props, instrument, fields );
 
-        assert.deepEqual( realTime.params, expected );
+        assert.deepEqual( financial.params, expected );
       } );
 
       test( "should set 'params' attribute of JSONP component for multiple instruments", () => {
-        const realTime = document.getElementById( "realTime" ),
-          expected = {
-            id: "preview",
-            code: "AA.N|.DJI",
-            tq: "select lastPrice,netChange",
-            tqx: "out:json;responseHandler:callback",
-          };
+        const expected = {
+          id: "preview",
+          code: "AA.N|.DJI",
+          tq: "select lastPrice,netChange",
+          tqx: "out:json;responseHandler:callback",
+        };
 
-        financialRequest._getRealTimeData( instruments, fields );
+        financialRequest._getData( props, instruments, fields );
 
-        assert.deepEqual( realTime.params, expected );
+        assert.deepEqual( financial.params, expected );
       } );
 
     } );
 
-    suite( "_handleRealTimeData", () => {
+    suite( "_handleData", () => {
       const e = { stopPropagation: () => {} };
 
       setup( () => {
@@ -280,7 +290,7 @@
         };
 
         financialRequest.addEventListener( "rise-financial-response", listener );
-        financialRequest._handleRealTimeData( e, realTimeData );
+        financialRequest._handleData( e, realTimeData );
       } );
 
       test( "should pass only instruments in 'rise-financial-response' event", ( done ) => {
@@ -294,12 +304,12 @@
         };
 
         financialRequest.addEventListener( "rise-financial-response", listener );
-        financialRequest._handleRealTimeData( e, {} );
+        financialRequest._handleData( e, {} );
       } );
 
     } );
 
-    suite( "_handleRealTimeError", () => {
+    suite( "_handleError", () => {
 
       test( "should fire rise-financial-error", ( done ) => {
         const resp =
@@ -317,7 +327,7 @@
           };
 
         financialRequest.addEventListener( "rise-financial-error", listener );
-        financialRequest._handleRealTimeError( {}, resp );
+        financialRequest._handleError( {}, resp );
       } );
 
     } );
@@ -400,8 +410,8 @@
         assert.isTrue( financialRequest._goPending );
       } );
 
-      test( "should call _getRealTimeData() if display ID and instruments have been received", () => {
-        const spy = sinon.spy( financialRequest, "_getRealTimeData" );
+      test( "should call _getData() if display ID and instruments have been received", () => {
+        const spy = sinon.spy( financialRequest, "_getData" );
 
         financialRequest._displayIdReceived = true;
         financialRequest._instrumentsReceived = true;
