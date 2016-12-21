@@ -21,7 +21,7 @@
 
 <script>
 
-  /* global sinon, suite, test, assert, setup, teardown, realTimeData */
+  /* global sinon, suite, test, assert, suiteSetup, suiteTeardown, setup, teardown, realTimeData */
 
   const financialRequest = document.querySelector( "#request" ),
     fields = [ "lastPrice", "netChange" ],
@@ -54,6 +54,16 @@
   } );
 
   suite( "rise-financial", () => {
+
+    let clock;
+
+    suiteSetup( () => {
+      clock = sinon.useFakeTimers();
+    } );
+
+    suiteTeardown( () => {
+      clock.restore();
+    } );
 
     suite( "Properties", () => {
 
@@ -100,6 +110,21 @@
 
       test( "should return false when invalid", () => {
         assert.isFalse( financialRequest._isValidUsage( "test" ) );
+      } );
+
+    } );
+
+    suite( "_startTimer", () => {
+
+      test( "should make a new request for data after 1 minute", () => {
+        const spy = sinon.spy( financialRequest.$.financial, "generateRequest" );
+
+        financialRequest._startTimer();
+        clock.tick( 60000 );
+
+        assert( spy.calledOnce );
+
+        spy.restore();
       } );
 
     } );

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <title>rise-financial Integration</title>
+
+  <script src="../../bower_components/webcomponentsjs/webcomponents.min.js"></script>
+  <script src="../../bower_components/web-component-tester/browser.js"></script>
+
+  <link rel="import" href="../../rise-financial-es6.html">
+
+  <script src="../mocks/firebase.js"></script>
+
+</head>
+<body>
+
+<rise-financial id="request" financial-list="Stocks" instrument-fields='["lastPrice", "netChange"]'></rise-financial>
+
+<script src="../data/real-time.js"></script>
+
+<script>
+
+  /* global sinon, suite, test, assert, setup, teardown, realTimeData */
+
+  const financialRequest = document.querySelector( "#request" );
+
+  // Mock logger getting display id and force handler of RC not running.
+  sinon.stub( financialRequest.$.logger.$.displayId, "generateRequest", () => {
+    financialRequest.$.logger._onDisplayIdError();
+  } );
+
+  suite( "rise-financial", () => {
+
+    suite( "refresh", () => {
+      let spy;
+
+      setup( () => {
+        spy = sinon.spy( financialRequest, "_startTimer" );
+      } );
+
+      teardown( () => {
+        spy.restore();
+      } );
+
+      test( "should start refresh timer on 'rise-financial-response'", () => {
+        financialRequest._handleData( {}, realTimeData );
+
+        assert( spy.calledOnce );
+      } );
+
+      test( "should start refresh timer on 'rise-financial-error'", () => {
+        financialRequest._handleError( {}, {} );
+
+        assert( spy.calledOnce );
+      } );
+
+    } );
+
+  } );
+</script>
+</body>
+</html>

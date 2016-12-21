@@ -83,6 +83,8 @@
       this._instruments = {};
     }
 
+    /***************************************** HELPERS ********************************************/
+
     _isValidType( type ) {
       return type === "real-time" || type === "historical";
     }
@@ -98,6 +100,12 @@
       } else {
         return true;
       }
+    }
+
+    _startTimer() {
+      this.debounce( "refresh", () => {
+        this.$.financial.generateRequest();
+      }, 60000 );
     }
 
     _onDisplayIdReceived( displayId ) {
@@ -178,10 +186,12 @@
       }
 
       this.fire( "rise-financial-response", response );
+      this._startTimer();
     }
 
     _handleError( e, resp ) {
       this.fire( "rise-financial-error", resp );
+      this._startTimer();
     }
 
     _getSymbols( instruments ) {
