@@ -134,8 +134,17 @@
       const instruments = snapshot.val();
 
       this._instruments = instruments ? instruments : {};
+      this._saveInstruments( this._instruments );
       this._instrumentsReceived = true;
       this.go();
+    }
+
+    _saveInstruments( instruments ) {
+      try {
+        localStorage.setItem( `risefinancial_${ this.financialList }`, JSON.stringify( instruments ) );
+      } catch ( e ) {
+        console.warn( e.message );
+      }
     }
 
     /***************************************** FINANCIAL ******************************************/

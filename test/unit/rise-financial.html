@@ -18,6 +18,7 @@
 <rise-financial id="request" financial-list="Stocks" instrument-fields='["lastPrice", "netChange"]'></rise-financial>
 
 <script src="../data/real-time.js"></script>
+<script src="../../node_modules/widget-tester/mocks/localStorage-mock.js"></script>
 
 <script>
 
@@ -195,6 +196,21 @@
         } );
 
         assert.deepEqual( financialRequest._instruments, {} );
+      } );
+
+    } );
+
+    suite( "_saveInstruments", () => {
+
+      setup( () => {
+        localStorage.removeItem( "risefinancial_Stocks" );
+      } );
+
+      test( "should save instruments to local storage", () => {
+        financialRequest._saveInstruments( instrument );
+
+        assert.equal( localStorage.getItem( "risefinancial_Stocks" ),
+          '{"AA?N":{"category":"Stocks","index":0,"name":"Alcoa","symbol":"AA.N"}}' ); // eslint-disable-line quotes
       } );
 
     } );
