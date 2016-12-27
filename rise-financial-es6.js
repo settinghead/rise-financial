@@ -118,6 +118,17 @@
       this.go();
     }
 
+    _log( params ) {
+      // only include usage_type if it's a valid usage value
+      if ( this._isValidUsage( this.usage ) ) {
+        params.usage_type = this.usage;
+      }
+
+      params.version = financialVersion;
+
+      this.$.logger.log( BQ_TABLE_NAME, params );
+    }
+
     /***************************************** FIREBASE *******************************************/
 
     _getInstruments() {
@@ -190,6 +201,14 @@
     }
 
     _handleError( e, resp ) {
+      // error response provides no request or error objects, use instruments to provide some detail instead
+      let params = {
+        event: "error",
+        event_details: `Instrument List: ${ JSON.stringify( this._instruments ) }`
+      };
+
+      this._log( params );
+
       this.fire( "rise-financial-error", resp );
       this._startTimer();
     }
@@ -216,15 +235,7 @@
         this._onDisplayIdReceived( e.detail );
       } );
 
-      // only include usage_type if it's a valid usage value
-      if ( this._isValidUsage( this.usage ) ) {
-        params.usage_type = this.usage;
-      }
-
-      params.version = financialVersion;
-
-      // log usage
-      this.$.logger.log( BQ_TABLE_NAME, params );
+      this._log( params );
     }
 
     attached() {
