@@ -147,6 +147,41 @@
 
     } );
 
+    suite( "_log", () => {
+      let logStub;
+
+      setup( () => {
+        logStub = sinon.stub( financialRequest.$.logger, "log" );
+      } );
+
+      teardown( () => {
+        logStub.restore();
+        financialRequest.usage = "";
+      } );
+
+      test( "should include version", () => {
+        financialRequest._log( {} );
+        assert.equal( logStub.args[ 0 ][ 0 ], "component_financial_events" );
+        assert.include( JSON.stringify( logStub.args[ 0 ][ 1 ] ), "{\"version\":" );
+      } );
+
+      test( "should include 'usage_type' if valid", () => {
+        financialRequest.usage = "widget";
+        financialRequest._log( {} );
+        assert.equal( logStub.args[ 0 ][ 0 ], "component_financial_events" );
+        assert.include( JSON.stringify( logStub.args[ 0 ][ 1 ] ), "{\"usage_type\":\"widget\"" );
+      } );
+
+      test( "should include any params provided", () => {
+        financialRequest._log( {
+          event: "error",
+          event_details: "test"
+        } );
+        assert.equal( logStub.args[ 0 ][ 0 ], "component_financial_events" );
+        assert.include( JSON.stringify( logStub.args[ 0 ][ 1 ] ), "{\"event\":\"error\",\"event_details\":\"test\"" );
+      } );
+    } );
+
     suite( "_getInstruments", () => {
       let spy;
 
@@ -335,6 +370,15 @@
     } );
 
     suite( "_handleError", () => {
+      let logStub;
+
+      setup( () => {
+        logStub = sinon.stub( financialRequest, "_log" );
+      } );
+
+      teardown( () => {
+        logStub.restore();
+      } );
 
       test( "should fire rise-financial-error", ( done ) => {
         const resp =
@@ -355,6 +399,23 @@
         financialRequest._handleError( {}, resp );
       } );
 
+      test( "should call _log() with correct params", () => {
+        const resp =
+          {
+            "request": {
+              "status": 404,
+              "statusText": "An error occurred"
+            }
+          };
+
+        financialRequest._handleError( {}, resp );
+
+        assert.isTrue( logStub.calledWith( {
+          event: "error",
+          event_details: `Instrument List: ${ JSON.stringify( financialRequest._instruments ) }`
+        } ) );
+      } );
+
     } );
 
     suite( "_getSymbols", () => {
@@ -373,12 +434,11 @@
       let logStub;
 
       setup( () => {
-        logStub = sinon.stub( financialRequest.$.logger, "log" );
+        logStub = sinon.stub( financialRequest, "_log" );
       } );
 
       teardown( () => {
         logStub.restore();
-        financialRequest.usage = "";
       } );
 
       test( "should initialize Firebase", () => {
@@ -386,10 +446,12 @@
         assert.isObject( financialRequest._firebaseApp );
       } );
 
-      test( "should log usage", () => {
+      test( "should call _log() with correct params", () => {
         financialRequest.ready();
-        assert.equal( logStub.args[ 0 ][ 0 ], "component_financial_events" );
-        assert.include( JSON.stringify( logStub.args[ 0 ][ 1 ] ), "{\"event\":\"ready\",\"version\":" );
+
+        assert.isTrue( logStub.calledWith( {
+          event: "ready"
+        } ) );
       } );
 
       test( "should listen for 'rise-logger-display-id' event", () => {
@@ -401,14 +463,6 @@
 
         stub.restore();
       } );
-
-      test( "should log usage and include 'usage_type'", () => {
-        financialRequest.usage = "widget";
-        financialRequest.ready();
-        assert.equal( logStub.args[ 0 ][ 0 ], "component_financial_events" );
-        assert.include( JSON.stringify( logStub.args[ 0 ][ 1 ] ), "{\"event\":\"ready\",\"usage_type\":\"widget\",\"version\":" );
-      } );
-
     } );
 
     suite( "go", () => {
