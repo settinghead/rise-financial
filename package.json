@@ -2,9 +2,11 @@
   "name": "rise-financial",
   "version": "1.0.0",
   "description": "Rise Vision web component for managing financial data",
+  "main": "rise-financial.html",
   "scripts": {
     "test": "gulp test",
     "build": "gulp build",
+    "2npm": "publish",
     "rise-financial-version": "gulp version"
   },
   "directories": {
@@ -41,6 +43,7 @@
     "gulp-file": "^0.3.0",
     "gulp-rename": "~1.2.0",
     "gulp-usemin": "0.3.7",
+    "publish": "^0.6.0",
     "run-sequence": "~1.1.0",
     "web-component-tester": "*",
     "widget-tester": "git://github.com/Rise-Vision/widget-tester.git"
