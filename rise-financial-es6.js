@@ -78,6 +78,7 @@
       };
 
       this._displayIdReceived = false;
+      this._dataPingReceived = false;
       this._instrumentsReceived = false;
       this._goPending = false;
       this._instruments = {};
@@ -108,6 +109,14 @@
       }, 60000 );
     }
 
+    _onDataPingReceived() {
+      this._dataPingReceived = true;
+
+      if ( this._goPending ) {
+        this.go();
+      }
+    }
+
     _onDisplayIdReceived( displayId ) {
       this._displayIdReceived = true;
 
@@ -115,7 +124,9 @@
         this._setDisplayId( displayId );
       }
 
-      this.go();
+      if ( this._goPending ) {
+        this.go();
+      }
     }
 
     _log( params ) {
@@ -147,7 +158,10 @@
       this._instruments = instruments ? instruments : {};
       this._saveInstruments( this._instruments );
       this._instrumentsReceived = true;
-      this.go();
+
+      if ( this._goPending ) {
+        this.go();
+      }
     }
 
     _saveInstruments( instruments ) {
@@ -239,6 +253,11 @@
         this._firebaseApp = firebase.initializeApp( config.firebase );
       }
 
+      // listen for data ping received
+      this.$.data.addEventListener( "rise-data-ping-received", ( e ) => {
+        this._onDataPingReceived( e.detail );
+      } );
+
       // listen for logger display id received
       this.$.logger.addEventListener( "rise-logger-display-id", ( e ) => {
         this._onDisplayIdReceived( e.detail );
@@ -256,7 +275,7 @@
     }
 
     go() {
-      if ( !this._displayIdReceived || !this._instrumentsReceived ) {
+      if ( !this._displayIdReceived || !this._instrumentsReceived || !this._dataPingReceived ) {
         this._goPending = true;
         return;
       }

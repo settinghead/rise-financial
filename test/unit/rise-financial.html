@@ -118,14 +118,14 @@
     suite( "_startTimer", () => {
 
       test( "should make a new request for data after 1 minute", () => {
-        const spy = sinon.spy( financialRequest.$.financial, "generateRequest" );
+        const stub = sinon.stub( financialRequest.$.financial, "generateRequest" );
 
         financialRequest._startTimer();
         clock.tick( 60000 );
 
-        assert( spy.calledOnce );
+        assert.isTrue( stub.calledOnce );
 
-        spy.restore();
+        stub.restore();
       } );
 
     } );
@@ -492,6 +492,7 @@
       test( "should flag that a go() is pending if display ID has not been received", () => {
         financialRequest._displayIdReceived = false;
         financialRequest._instrumentsReceived = true;
+        financialRequest._dataPingReceived = true;
         financialRequest.go();
 
         assert.isTrue( financialRequest._goPending );
@@ -500,16 +501,27 @@
       test( "should flag that a go() is pending if instruments have not been received", () => {
         financialRequest._displayIdReceived = true;
         financialRequest._instrumentsReceived = false;
+        financialRequest._dataPingReceived = true;
         financialRequest.go();
 
         assert.isTrue( financialRequest._goPending );
       } );
 
-      test( "should call _getData() if display ID and instruments have been received", () => {
+      test( "should flag that a go() is pending if data ping has not been received", () => {
+        financialRequest._displayIdReceived = true;
+        financialRequest._instrumentsReceived = true;
+        financialRequest._dataPingReceived = false;
+        financialRequest.go();
+
+        assert.isTrue( financialRequest._goPending );
+      } );
+
+      test( "should call _getData() if display ID, instruments, and data ping have been received", () => {
         const spy = sinon.spy( financialRequest, "_getData" );
 
         financialRequest._displayIdReceived = true;
         financialRequest._instrumentsReceived = true;
+        financialRequest._dataPingReceived = true;
         financialRequest.go();
 
         assert.isFalse( financialRequest._goPending );
