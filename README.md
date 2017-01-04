@@ -5,9 +5,9 @@
 `rise-financial` is a Polymer Web Component that works together with the [Rise Vision Financial Selector](https://selector.risevision.com/), a web app for managing financial content. It retrieves the financial list and its corresponding instruments from [Firebase](https://firebase.google.com/). Data is refreshed in realtime, so any changes that are made to a particular financial list in the Financial Selector are immediately propagated to the `rise-financial` component.
 
 ## Usage
-To use `rise-financial`, you should first install it using npm:
+To use `rise-financial`, you should first install it using Bower:
 ```
-npm install rise-financial --save
+bower install https://github.com/Rise-Vision/rise-financial.git
 ```
 
 Next, construct your HTML page. You should include `webcomponents-lite.min.js` before any code that touches the DOM, and load the web component using an [HTML import](http://webcomponents.org/articles/introduction-to-html-imports/).
