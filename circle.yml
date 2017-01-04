@@ -35,3 +35,6 @@ deployment:
     branch: master
     commands:
       - NODE_ENV=prod yarn run build
+      # Publish to npm.
+      - echo -e "$NPM_USERNAME\n$NPM_PASSWORD\n$NPM_EMAIL" | npm login
+      - npm run 2npm
