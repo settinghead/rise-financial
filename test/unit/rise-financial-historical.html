@@ -17,7 +17,7 @@
 
 <rise-financial id="request" financial-list="Stocks" instrument-fields='["closePrice", "percentChange"]' type="historical"></rise-financial>
 
-<script src="../data/real-time.js"></script>
+<script src="../data/realtime.js"></script>
 
 <script>
 
@@ -43,7 +43,7 @@
       } );
 
       test( "should return true if not retrieving historical data", () => {
-        assert.isTrue( financialRequest._isValidDuration( "week", "real-time" ) );
+        assert.isTrue( financialRequest._isValidDuration( "week", "realtime" ) );
       } );
 
     } );

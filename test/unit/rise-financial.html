@@ -17,7 +17,7 @@
 
 <rise-financial id="request" financial-list="Stocks" instrument-fields='["lastPrice", "netChange"]'></rise-financial>
 
-<script src="../data/real-time.js"></script>
+<script src="../data/realtime.js"></script>
 <script src="../../node_modules/widget-tester/mocks/localStorage-mock.js"></script>
 
 <script>
@@ -77,7 +77,7 @@
       } );
 
       test( "should set default type property", () => {
-        assert.equal( financialRequest.type, "real-time" );
+        assert.equal( financialRequest.type, "realtime" );
       } );
 
       test( "should set default duration property", () => {
@@ -88,8 +88,8 @@
 
     suite( "_isValidType", () => {
 
-      test( "should return true if 'type' attribute is 'real-time'", () => {
-        assert.isTrue( financialRequest._isValidType( "real-time" ) );
+      test( "should return true if 'type' attribute is 'realtime'", () => {
+        assert.isTrue( financialRequest._isValidType( "realtime" ) );
       } );
 
       test( "should return true if 'type' attribute is 'historical'", () => {
@@ -293,7 +293,7 @@
 
       const financial = document.getElementById( "financial" ),
         props = {
-          type: "real-time",
+          type: "realtime",
           duration: "1M",
         };
 
