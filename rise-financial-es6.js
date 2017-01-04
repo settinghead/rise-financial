@@ -24,11 +24,11 @@
 
       this.properties = {
         /**
-         * Type of data to fetch, either "real-time" or "historical".
+         * Type of data to fetch, either "realtime" or "historical".
          */
         type: {
           type: String,
-          value: "real-time"
+          value: "realtime"
         },
 
         /**
@@ -86,7 +86,7 @@
     /***************************************** HELPERS ********************************************/
 
     _isValidType( type ) {
-      return type === "real-time" || type === "historical";
+      return type === "realtime" || type === "historical";
     }
 
     _isValidUsage( usage ) {
@@ -186,7 +186,7 @@
       const financial = this.$.financial,
         params = this._getParams( instruments, fields );
 
-      if ( props.type === "real-time" ) {
+      if ( props.type === "realtime" ) {
         financial.url = config.financial.realTimeURL;
       } else {
         params.kind = props.duration;
