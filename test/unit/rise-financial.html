@@ -183,6 +183,14 @@
       } );
     } );
 
+    suite( "_getDataCacheKey", () => {
+
+      test( "should return correct data cache key", () => {
+        assert.equal( financialRequest._getDataCacheKey(), "risefinancial_realtime_preview_Stocks" );
+      } );
+
+    } );
+
     suite( "_getInstruments", () => {
       let spy;
 

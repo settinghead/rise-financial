@@ -140,6 +140,10 @@
       this.$.logger.log( BQ_TABLE_NAME, params );
     }
 
+    _getDataCacheKey() {
+      return `${config.cache.baseKeyName}_${this.type}_${this.displayId}_${this.financialList}`;
+    }
+
     /***************************************** FIREBASE *******************************************/
 
     _getInstruments() {

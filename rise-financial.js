@@ -6,6 +6,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 /* exported config */
 var config = {
+  cache: {
+    baseKeyName: "risefinancial"
+  },
   firebase: {
     apiKey: "AIzaSyA8VXZwqhHx4qEtV5BcBNe41r7Ra0ZThfY",
     databaseURL: "https://fir-b3915.firebaseio.com"
@@ -172,6 +175,11 @@ var financialVersion = "1.0.1";
         params.version = financialVersion;
 
         this.$.logger.log(BQ_TABLE_NAME, params);
+      }
+    }, {
+      key: "_getDataCacheKey",
+      value: function _getDataCacheKey() {
+        return config.cache.baseKeyName + "_" + this.type + "_" + this.displayId + "_" + this.financialList;
       }
 
       /***************************************** FIREBASE *******************************************/
