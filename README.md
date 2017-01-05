@@ -39,6 +39,10 @@ Next, construct your HTML page. You should include `webcomponents-lite.min.js` b
         financial.addEventListener( "rise-financial-error", ( e ) => {
           console.log( e.detail );
         } );
+        
+        financial.addEventListener( "rise-financial-no-network", ( e ) => {
+          console.log( "No cached data available and no network" );
+        } );
 
         // Request the financial data.
         financial.go();
