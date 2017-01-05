@@ -109,6 +109,8 @@ var financialVersion = "1.0.1";
         this._instrumentsReceived = false;
         this._goPending = false;
         this._instruments = {};
+        this._refreshPending = false;
+        this._initialGo = true;
       }
 
       /***************************************** HELPERS ********************************************/
@@ -139,7 +141,8 @@ var financialVersion = "1.0.1";
         var _this = this;
 
         this.debounce("refresh", function () {
-          _this.$.financial.generateRequest();
+          _this._refreshPending = true;
+          _this.go();
         }, 60000);
       }
     }, {
@@ -357,6 +360,8 @@ var financialVersion = "1.0.1";
     }, {
       key: "go",
       value: function go() {
+        var _this4 = this;
+
         if (!this._displayIdReceived || !this._instrumentsReceived || !this._dataPingReceived) {
           this._goPending = true;
           return;
@@ -364,10 +369,28 @@ var financialVersion = "1.0.1";
 
         this._goPending = false;
 
-        this._getData({
-          type: this.type,
-          duration: this.duration
-        }, this._instruments, this.instrumentFields);
+        if (this._initialGo) {
+          this._initialGo = false;
+
+          // configure and execute initial request
+          this._getData({
+            type: this.type,
+            duration: this.duration
+          }, this._instruments, this.instrumentFields);
+        } else {
+          // get cached data (if available)
+          this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
+            if (_this4._refreshPending || !cachedData) {
+              // refresh timer completed or there is no cached data available
+              _this4._refreshPending = false;
+              // execute a request
+              _this4.$.financial.generateRequest();
+            } else {
+              // provide cached data for the response
+              _this4.fire("rise-financial-response", cachedData);
+            }
+          });
+        }
       }
     }]);
 

@@ -82,6 +82,8 @@
       this._instrumentsReceived = false;
       this._goPending = false;
       this._instruments = {};
+      this._refreshPending = false;
+      this._initialGo = true;
     }
 
     /***************************************** HELPERS ********************************************/
@@ -105,7 +107,8 @@
 
     _startTimer() {
       this.debounce( "refresh", () => {
-        this.$.financial.generateRequest();
+        this._refreshPending = true;
+        this.go();
       }, 60000 );
     }
 
@@ -308,14 +311,32 @@
 
       this._goPending = false;
 
-      this._getData(
-        {
-          type: this.type,
-          duration: this.duration,
-        },
-        this._instruments,
-        this.instrumentFields
-      );
+      if ( this._initialGo ) {
+        this._initialGo = false;
+
+        // configure and execute initial request
+        this._getData(
+          {
+            type: this.type,
+            duration: this.duration,
+          },
+          this._instruments,
+          this.instrumentFields
+        );
+      } else {
+        // get cached data (if available)
+        this.$.data.getItem( this._getDataCacheKey(), ( cachedData ) => {
+          if ( this._refreshPending || !cachedData ) {
+            // refresh timer completed or there is no cached data available
+            this._refreshPending = false;
+            // execute a request
+            this.$.financial.generateRequest();
+          } else {
+            // provide cached data for the response
+            this.fire( "rise-financial-response", cachedData );
+          }
+        } );
+      }
     }
   }
 
