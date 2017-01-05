@@ -66,6 +66,10 @@
       clock.restore();
     } );
 
+    setup( () => {
+      localStorage.removeItem( `risefinancial_${financialRequest.type}_${financialRequest.displayId}_${financialRequest.financialList}` );
+    } );
+
     suite( "Properties", () => {
 
       test( "should set financial list property", () => {
@@ -389,6 +393,20 @@
 
         financialRequest.addEventListener( "rise-financial-response", listener );
         financialRequest._handleData( e, {} );
+      } );
+
+      test( "should cache the data that gets provided in 'rise-financial-response' event", () => {
+        let spy = sinon.spy( financialRequest.$.data, "saveItem" );
+
+        financialRequest._handleData( e, realTimeData );
+
+        assert.equal( spy.args[ 0 ][ 0 ], financialRequest._getDataCacheKey() );
+        assert.deepEqual( spy.args[ 0 ][ 1 ], {
+          instruments: instruments,
+          data: realTimeData.table,
+        } );
+
+        spy.restore();
       } );
 
     } );

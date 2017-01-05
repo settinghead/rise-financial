@@ -268,6 +268,8 @@ var financialVersion = "1.0.1";
           response.data = resp.table;
         }
 
+        this.$.data.saveItem(this._getDataCacheKey(), response);
+
         this.fire("rise-financial-response", response);
         this._startTimer();
       }
