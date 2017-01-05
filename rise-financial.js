@@ -258,6 +258,21 @@ var financialVersion = "1.0.1";
         financial.params = params;
       }
     }, {
+      key: "_handleNoNetwork",
+      value: function _handleNoNetwork() {
+        var _this2 = this;
+
+        this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
+          if (cachedData) {
+            _this2.fire("rise-financial-response", cachedData);
+          } else {
+            _this2.fire("rise-financial-no-network");
+          }
+        });
+
+        this._startTimer();
+      }
+    }, {
       key: "_handleData",
       value: function _handleData(e, resp) {
         var response = {
@@ -282,10 +297,18 @@ var financialVersion = "1.0.1";
           event_details: "Instrument List: " + JSON.stringify(this._instruments)
         };
 
-        this._log(params);
+        // check for no network
+        if (this.$.financial.lastRequest && this.$.financial.lastRequest.status === 0) {
+          this._handleNoNetwork();
+        } else {
+          this._log(params);
 
-        this.fire("rise-financial-error", resp);
-        this._startTimer();
+          // delete cached data
+          this.$.data.deleteItem(this._getDataCacheKey());
+
+          this.fire("rise-financial-error", resp);
+          this._startTimer();
+        }
       }
     }, {
       key: "_getSymbols",
@@ -299,7 +322,7 @@ var financialVersion = "1.0.1";
     }, {
       key: "ready",
       value: function ready() {
-        var _this2 = this;
+        var _this3 = this;
 
         var params = {
           event: "ready"
@@ -311,12 +334,12 @@ var financialVersion = "1.0.1";
 
         // listen for data ping received
         this.$.data.addEventListener("rise-data-ping-received", function (e) {
-          _this2._onDataPingReceived(e.detail);
+          _this3._onDataPingReceived(e.detail);
         });
 
         // listen for logger display id received
         this.$.logger.addEventListener("rise-logger-display-id", function (e) {
-          _this2._onDisplayIdReceived(e.detail);
+          _this3._onDisplayIdReceived(e.detail);
         });
 
         this._log(params);

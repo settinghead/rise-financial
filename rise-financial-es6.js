@@ -214,6 +214,18 @@
       financial.params = params;
     }
 
+    _handleNoNetwork() {
+      this.$.data.getItem( this._getDataCacheKey(), ( cachedData ) => {
+        if ( cachedData ) {
+          this.fire( "rise-financial-response", cachedData );
+        } else {
+          this.fire( "rise-financial-no-network" );
+        }
+      } );
+
+      this._startTimer();
+    }
+
     _handleData( e, resp ) {
       const response = {
         instruments: this._instruments,
@@ -236,10 +248,18 @@
         event_details: `Instrument List: ${ JSON.stringify( this._instruments ) }`
       };
 
-      this._log( params );
+      // check for no network
+      if ( this.$.financial.lastRequest && this.$.financial.lastRequest.status === 0 ) {
+        this._handleNoNetwork();
+      } else {
+        this._log( params );
 
-      this.fire( "rise-financial-error", resp );
-      this._startTimer();
+        // delete cached data
+        this.$.data.deleteItem( this._getDataCacheKey() );
+
+        this.fire( "rise-financial-error", resp );
+        this._startTimer();
+      }
     }
 
     _getSymbols( instruments ) {

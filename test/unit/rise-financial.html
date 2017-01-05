@@ -355,6 +355,50 @@
 
     } );
 
+    suite( "_handleNoNetwork", () => {
+
+      test( "should fire rise-google-sheet-response when cached data exists", ( done ) => {
+        let listener = ( response ) => {
+          assert.deepEqual( response.detail, {
+            instruments: instruments,
+            data: realTimeData.table,
+          } );
+
+          financialRequest.removeEventListener( "rise-financial-response", listener );
+          financialRequest.$.data.getItem.restore();
+
+          done();
+        };
+
+        sinon.stub( financialRequest.$.data, "getItem", ( key, cb ) => {
+          return cb( {
+            instruments: instruments,
+            data: realTimeData.table,
+          } );
+        } );
+
+        financialRequest.addEventListener( "rise-financial-response", listener );
+        financialRequest._handleNoNetwork();
+      } );
+
+      test( "should fire rise-financial-no-network when cached data doesn't exist", ( done ) => {
+        let listener = () => {
+          financialRequest.removeEventListener( "rise-financial-no-network", listener );
+          financialRequest.$.data.getItem.restore();
+
+          done();
+        };
+
+        sinon.stub( financialRequest.$.data, "getItem", ( key, cb ) => {
+          return cb( null );
+        } );
+
+        financialRequest.addEventListener( "rise-financial-no-network", listener );
+        financialRequest._handleNoNetwork();
+      } );
+
+    } );
+
     suite( "_handleData", () => {
       const e = { stopPropagation: () => {} };
 
