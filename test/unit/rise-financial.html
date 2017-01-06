@@ -362,7 +362,7 @@
 
     suite( "_handleNoNetwork", () => {
 
-      test( "should fire rise-google-sheet-response when cached data exists", ( done ) => {
+      test( "should fire rise-financial-response when cached data exists", ( done ) => {
         let listener = ( response ) => {
           assert.deepEqual( response.detail, {
             instruments: instruments,
