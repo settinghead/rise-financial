@@ -377,20 +377,26 @@ var financialVersion = "1.1.0";
             type: this.type,
             duration: this.duration
           }, this._instruments, this.instrumentFields);
-        } else {
-          // get cached data (if available)
-          this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
-            if (_this4._refreshPending || !cachedData) {
-              // refresh timer completed or there is no cached data available
-              _this4._refreshPending = false;
-              // execute a request
-              _this4.$.financial.generateRequest();
-            } else {
-              // provide cached data for the response
-              _this4.fire("rise-financial-response", cachedData);
-            }
-          });
+
+          return;
         }
+
+        // execute new request when a refresh is pending
+        if (this._refreshPending) {
+          this._refreshPending = false;
+          this.$.financial.generateRequest();
+
+          return;
+        }
+
+        // provide cached data (if available)
+        this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
+          if (!cachedData) {
+            _this4.$.financial.generateRequest();
+          } else {
+            _this4.fire("rise-financial-response", cachedData);
+          }
+        });
       }
     }]);
 
