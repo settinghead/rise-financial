@@ -386,9 +386,9 @@
         financialRequest._handleNoNetwork();
       } );
 
-      test( "should fire rise-financial-no-network when cached data doesn't exist", ( done ) => {
+      test( "should fire rise-financial-no-data when cached data doesn't exist", ( done ) => {
         let listener = () => {
-          financialRequest.removeEventListener( "rise-financial-no-network", listener );
+          financialRequest.removeEventListener( "rise-financial-no-data", listener );
           financialRequest.$.data.getItem.restore();
 
           done();
@@ -398,7 +398,7 @@
           return cb( null );
         } );
 
-        financialRequest.addEventListener( "rise-financial-no-network", listener );
+        financialRequest.addEventListener( "rise-financial-no-data", listener );
         financialRequest._handleNoNetwork();
       } );
 

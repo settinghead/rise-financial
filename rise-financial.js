@@ -269,7 +269,7 @@ var financialVersion = "1.1.0";
           if (cachedData) {
             _this2.fire("rise-financial-response", cachedData);
           } else {
-            _this2.fire("rise-financial-no-network");
+            _this2.fire("rise-financial-no-data");
           }
         });
 

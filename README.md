@@ -40,8 +40,8 @@ Next, construct your HTML page. You should include `webcomponents-lite.min.js` b
           console.log( e.detail );
         } );
         
-        financial.addEventListener( "rise-financial-no-network", ( e ) => {
-          console.log( "No cached data available and no network" );
+        financial.addEventListener( "rise-financial-no-data", ( e ) => {
+          console.log( "No data available" );
         } );
 
         // Request the financial data.

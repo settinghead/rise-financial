@@ -222,7 +222,7 @@
         if ( cachedData ) {
           this.fire( "rise-financial-response", cachedData );
         } else {
-          this.fire( "rise-financial-no-network" );
+          this.fire( "rise-financial-no-data" );
         }
       } );
 
