@@ -6,6 +6,9 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 /* exported config */
 var config = {
+  cache: {
+    baseKeyName: "risefinancial"
+  },
   firebase: {
     apiKey: "AIzaSyA8VXZwqhHx4qEtV5BcBNe41r7Ra0ZThfY",
     databaseURL: "https://fir-b3915.firebaseio.com"
@@ -16,7 +19,7 @@ var config = {
   }
 };
 
-var financialVersion = "1.0.1";
+var financialVersion = "1.1.0";
 (function financial() {
   /* global Polymer, financialVersion, firebase, config */
 
@@ -102,9 +105,12 @@ var financialVersion = "1.0.1";
         };
 
         this._displayIdReceived = false;
+        this._dataPingReceived = false;
         this._instrumentsReceived = false;
         this._goPending = false;
         this._instruments = {};
+        this._refreshPending = false;
+        this._initialGo = true;
       }
 
       /***************************************** HELPERS ********************************************/
@@ -135,8 +141,18 @@ var financialVersion = "1.0.1";
         var _this = this;
 
         this.debounce("refresh", function () {
-          _this.$.financial.generateRequest();
+          _this._refreshPending = true;
+          _this.go();
         }, 60000);
+      }
+    }, {
+      key: "_onDataPingReceived",
+      value: function _onDataPingReceived() {
+        this._dataPingReceived = true;
+
+        if (this._goPending) {
+          this.go();
+        }
       }
     }, {
       key: "_onDisplayIdReceived",
@@ -147,7 +163,9 @@ var financialVersion = "1.0.1";
           this._setDisplayId(displayId);
         }
 
-        this.go();
+        if (this._goPending) {
+          this.go();
+        }
       }
     }, {
       key: "_log",
@@ -160,6 +178,11 @@ var financialVersion = "1.0.1";
         params.version = financialVersion;
 
         this.$.logger.log(BQ_TABLE_NAME, params);
+      }
+    }, {
+      key: "_getDataCacheKey",
+      value: function _getDataCacheKey() {
+        return config.cache.baseKeyName + "_" + this.type + "_" + this.displayId + "_" + this.financialList;
       }
 
       /***************************************** FIREBASE *******************************************/
@@ -183,7 +206,10 @@ var financialVersion = "1.0.1";
         this._instruments = instruments ? instruments : {};
         this._saveInstruments(this._instruments);
         this._instrumentsReceived = true;
-        this.go();
+
+        if (this._goPending) {
+          this.go();
+        }
       }
     }, {
       key: "_saveInstruments",
@@ -235,6 +261,21 @@ var financialVersion = "1.0.1";
         financial.params = params;
       }
     }, {
+      key: "_handleNoNetwork",
+      value: function _handleNoNetwork() {
+        var _this2 = this;
+
+        this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
+          if (cachedData) {
+            _this2.fire("rise-financial-response", cachedData);
+          } else {
+            _this2.fire("rise-financial-no-data");
+          }
+        });
+
+        this._startTimer();
+      }
+    }, {
       key: "_handleData",
       value: function _handleData(e, resp) {
         var response = {
@@ -244,6 +285,8 @@ var financialVersion = "1.0.1";
         if (resp && resp.table) {
           response.data = resp.table;
         }
+
+        this.$.data.saveItem(this._getDataCacheKey(), response);
 
         this.fire("rise-financial-response", response);
         this._startTimer();
@@ -257,10 +300,18 @@ var financialVersion = "1.0.1";
           event_details: "Instrument List: " + JSON.stringify(this._instruments)
         };
 
-        this._log(params);
+        // check for no network
+        if (this.$.financial.lastRequest && this.$.financial.lastRequest.status === 0) {
+          this._handleNoNetwork();
+        } else {
+          this._log(params);
 
-        this.fire("rise-financial-error", resp);
-        this._startTimer();
+          // delete cached data
+          this.$.data.deleteItem(this._getDataCacheKey());
+
+          this.fire("rise-financial-error", resp);
+          this._startTimer();
+        }
       }
     }, {
       key: "_getSymbols",
@@ -274,7 +325,7 @@ var financialVersion = "1.0.1";
     }, {
       key: "ready",
       value: function ready() {
-        var _this2 = this;
+        var _this3 = this;
 
         var params = {
           event: "ready"
@@ -284,9 +335,14 @@ var financialVersion = "1.0.1";
           this._firebaseApp = firebase.initializeApp(config.firebase);
         }
 
+        // listen for data ping received
+        this.$.data.addEventListener("rise-data-ping-received", function (e) {
+          _this3._onDataPingReceived(e.detail);
+        });
+
         // listen for logger display id received
         this.$.logger.addEventListener("rise-logger-display-id", function (e) {
-          _this2._onDisplayIdReceived(e.detail);
+          _this3._onDisplayIdReceived(e.detail);
         });
 
         this._log(params);
@@ -304,17 +360,43 @@ var financialVersion = "1.0.1";
     }, {
       key: "go",
       value: function go() {
-        if (!this._displayIdReceived || !this._instrumentsReceived) {
+        var _this4 = this;
+
+        if (!this._displayIdReceived || !this._instrumentsReceived || !this._dataPingReceived) {
           this._goPending = true;
           return;
         }
 
         this._goPending = false;
 
-        this._getData({
-          type: this.type,
-          duration: this.duration
-        }, this._instruments, this.instrumentFields);
+        if (this._initialGo) {
+          this._initialGo = false;
+
+          // configure and execute initial request
+          this._getData({
+            type: this.type,
+            duration: this.duration
+          }, this._instruments, this.instrumentFields);
+
+          return;
+        }
+
+        // execute new request when a refresh is pending
+        if (this._refreshPending) {
+          this._refreshPending = false;
+          this.$.financial.generateRequest();
+
+          return;
+        }
+
+        // provide cached data (if available)
+        this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
+          if (!cachedData) {
+            _this4.$.financial.generateRequest();
+          } else {
+            _this4.fire("rise-financial-response", cachedData);
+          }
+        });
       }
     }]);
 

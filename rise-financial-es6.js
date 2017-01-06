@@ -78,9 +78,12 @@
       };
 
       this._displayIdReceived = false;
+      this._dataPingReceived = false;
       this._instrumentsReceived = false;
       this._goPending = false;
       this._instruments = {};
+      this._refreshPending = false;
+      this._initialGo = true;
     }
 
     /***************************************** HELPERS ********************************************/
@@ -104,8 +107,17 @@
 
     _startTimer() {
       this.debounce( "refresh", () => {
-        this.$.financial.generateRequest();
+        this._refreshPending = true;
+        this.go();
       }, 60000 );
+    }
+
+    _onDataPingReceived() {
+      this._dataPingReceived = true;
+
+      if ( this._goPending ) {
+        this.go();
+      }
     }
 
     _onDisplayIdReceived( displayId ) {
@@ -115,7 +127,9 @@
         this._setDisplayId( displayId );
       }
 
-      this.go();
+      if ( this._goPending ) {
+        this.go();
+      }
     }
 
     _log( params ) {
@@ -127,6 +141,10 @@
       params.version = financialVersion;
 
       this.$.logger.log( BQ_TABLE_NAME, params );
+    }
+
+    _getDataCacheKey() {
+      return `${config.cache.baseKeyName}_${this.type}_${this.displayId}_${this.financialList}`;
     }
 
     /***************************************** FIREBASE *******************************************/
@@ -147,7 +165,10 @@
       this._instruments = instruments ? instruments : {};
       this._saveInstruments( this._instruments );
       this._instrumentsReceived = true;
-      this.go();
+
+      if ( this._goPending ) {
+        this.go();
+      }
     }
 
     _saveInstruments( instruments ) {
@@ -196,6 +217,18 @@
       financial.params = params;
     }
 
+    _handleNoNetwork() {
+      this.$.data.getItem( this._getDataCacheKey(), ( cachedData ) => {
+        if ( cachedData ) {
+          this.fire( "rise-financial-response", cachedData );
+        } else {
+          this.fire( "rise-financial-no-data" );
+        }
+      } );
+
+      this._startTimer();
+    }
+
     _handleData( e, resp ) {
       const response = {
         instruments: this._instruments,
@@ -204,6 +237,8 @@
       if ( resp && resp.table ) {
         response.data = resp.table;
       }
+
+      this.$.data.saveItem( this._getDataCacheKey(), response );
 
       this.fire( "rise-financial-response", response );
       this._startTimer();
@@ -216,10 +251,18 @@
         event_details: `Instrument List: ${ JSON.stringify( this._instruments ) }`
       };
 
-      this._log( params );
+      // check for no network
+      if ( this.$.financial.lastRequest && this.$.financial.lastRequest.status === 0 ) {
+        this._handleNoNetwork();
+      } else {
+        this._log( params );
 
-      this.fire( "rise-financial-error", resp );
-      this._startTimer();
+        // delete cached data
+        this.$.data.deleteItem( this._getDataCacheKey() );
+
+        this.fire( "rise-financial-error", resp );
+        this._startTimer();
+      }
     }
 
     _getSymbols( instruments ) {
@@ -239,6 +282,11 @@
         this._firebaseApp = firebase.initializeApp( config.firebase );
       }
 
+      // listen for data ping received
+      this.$.data.addEventListener( "rise-data-ping-received", ( e ) => {
+        this._onDataPingReceived( e.detail );
+      } );
+
       // listen for logger display id received
       this.$.logger.addEventListener( "rise-logger-display-id", ( e ) => {
         this._onDisplayIdReceived( e.detail );
@@ -256,21 +304,45 @@
     }
 
     go() {
-      if ( !this._displayIdReceived || !this._instrumentsReceived ) {
+      if ( !this._displayIdReceived || !this._instrumentsReceived || !this._dataPingReceived ) {
         this._goPending = true;
         return;
       }
 
       this._goPending = false;
 
-      this._getData(
-        {
-          type: this.type,
-          duration: this.duration,
-        },
-        this._instruments,
-        this.instrumentFields
-      );
+      if ( this._initialGo ) {
+        this._initialGo = false;
+
+        // configure and execute initial request
+        this._getData(
+          {
+            type: this.type,
+            duration: this.duration,
+          },
+          this._instruments,
+          this.instrumentFields
+        );
+
+        return;
+      }
+
+      // execute new request when a refresh is pending
+      if ( this._refreshPending ) {
+        this._refreshPending = false;
+        this.$.financial.generateRequest();
+
+        return;
+      }
+
+      // provide cached data (if available)
+      this.$.data.getItem( this._getDataCacheKey(), ( cachedData ) => {
+        if ( !cachedData ) {
+          this.$.financial.generateRequest();
+        } else {
+          this.fire( "rise-financial-response", cachedData );
+        }
+      } );
     }
   }
 
