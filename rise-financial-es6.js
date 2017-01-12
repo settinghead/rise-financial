@@ -17,9 +17,9 @@
        */
 
        /**
-       * Fired when an error is received.
+       * Fired when an error occurs and no cached data is available.
        *
-       * @event rise-financial-error
+       * @event rise-financial-no-data
        */
 
       this.properties = {
@@ -217,18 +217,6 @@
       financial.params = params;
     }
 
-    _handleNoNetwork() {
-      this.$.data.getItem( this._getDataCacheKey(), ( cachedData ) => {
-        if ( cachedData ) {
-          this.fire( "rise-financial-response", cachedData );
-        } else {
-          this.fire( "rise-financial-no-data" );
-        }
-      } );
-
-      this._startTimer();
-    }
-
     _handleData( e, resp ) {
       const response = {
         instruments: this._instruments,
@@ -244,25 +232,24 @@
       this._startTimer();
     }
 
-    _handleError( e, resp ) {
-      // error response provides no request or error objects, use instruments to provide some detail instead
+    _handleError() {
+      // error response provides no request or error message, use instruments to provide some detail instead
       let params = {
         event: "error",
         event_details: `Instrument List: ${ JSON.stringify( this._instruments ) }`
       };
 
-      // check for no network
-      if ( this.$.financial.lastRequest && this.$.financial.lastRequest.status === 0 ) {
-        this._handleNoNetwork();
-      } else {
-        this._log( params );
+      this._log( params );
 
-        // delete cached data
-        this.$.data.deleteItem( this._getDataCacheKey() );
+      this.$.data.getItem( this._getDataCacheKey(), ( cachedData ) => {
+        if ( cachedData ) {
+          this.fire( "rise-financial-response", cachedData );
+        } else {
+          this.fire( "rise-financial-no-data" );
+        }
+      } );
 
-        this.fire( "rise-financial-error", resp );
-        this._startTimer();
-      }
+      this._startTimer();
     }
 
     _getSymbols( instruments ) {
