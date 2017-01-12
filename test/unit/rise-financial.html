@@ -360,50 +360,6 @@
 
     } );
 
-    suite( "_handleNoNetwork", () => {
-
-      test( "should fire rise-financial-response when cached data exists", ( done ) => {
-        let listener = ( response ) => {
-          assert.deepEqual( response.detail, {
-            instruments: instruments,
-            data: realTimeData.table,
-          } );
-
-          financialRequest.removeEventListener( "rise-financial-response", listener );
-          financialRequest.$.data.getItem.restore();
-
-          done();
-        };
-
-        sinon.stub( financialRequest.$.data, "getItem", ( key, cb ) => {
-          return cb( {
-            instruments: instruments,
-            data: realTimeData.table,
-          } );
-        } );
-
-        financialRequest.addEventListener( "rise-financial-response", listener );
-        financialRequest._handleNoNetwork();
-      } );
-
-      test( "should fire rise-financial-no-data when cached data doesn't exist", ( done ) => {
-        let listener = () => {
-          financialRequest.removeEventListener( "rise-financial-no-data", listener );
-          financialRequest.$.data.getItem.restore();
-
-          done();
-        };
-
-        sinon.stub( financialRequest.$.data, "getItem", ( key, cb ) => {
-          return cb( null );
-        } );
-
-        financialRequest.addEventListener( "rise-financial-no-data", listener );
-        financialRequest._handleNoNetwork();
-      } );
-
-    } );
-
     suite( "_handleData", () => {
       const e = { stopPropagation: () => {} };
 
@@ -471,35 +427,48 @@
         logStub.restore();
       } );
 
-      test( "should fire rise-financial-error", ( done ) => {
-        const resp =
-          {
-            "request": {
-              "status": 404,
-              "statusText": "An error occurred"
-            }
-          },
-          listener = ( response ) => {
-            assert.deepEqual( response.detail, resp );
+      test( "should fire rise-financial-response when cached data exists", ( done ) => {
+        let listener = ( response ) => {
+          assert.deepEqual( response.detail, {
+            instruments: instruments,
+            data: realTimeData.table,
+          } );
 
-            financialRequest.removeEventListener( "rise-financial-error", listener );
-            done();
-          };
+          financialRequest.removeEventListener( "rise-financial-response", listener );
+          financialRequest.$.data.getItem.restore();
 
-        financialRequest.addEventListener( "rise-financial-error", listener );
-        financialRequest._handleError( {}, resp );
+          done();
+        };
+
+        sinon.stub( financialRequest.$.data, "getItem", ( key, cb ) => {
+          return cb( {
+            instruments: instruments,
+            data: realTimeData.table,
+          } );
+        } );
+
+        financialRequest.addEventListener( "rise-financial-response", listener );
+        financialRequest._handleError();
+      } );
+
+      test( "should fire rise-financial-no-data when cached data doesn't exist", ( done ) => {
+        let listener = () => {
+          financialRequest.removeEventListener( "rise-financial-no-data", listener );
+          financialRequest.$.data.getItem.restore();
+
+          done();
+        };
+
+        sinon.stub( financialRequest.$.data, "getItem", ( key, cb ) => {
+          return cb( null );
+        } );
+
+        financialRequest.addEventListener( "rise-financial-no-data", listener );
+        financialRequest._handleError();
       } );
 
       test( "should call _log() with correct params", () => {
-        const resp =
-          {
-            "request": {
-              "status": 404,
-              "statusText": "An error occurred"
-            }
-          };
-
-        financialRequest._handleError( {}, resp );
+        financialRequest._handleError();
 
         assert.isTrue( logStub.calledWith( {
           event: "error",

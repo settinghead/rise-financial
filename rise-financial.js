@@ -44,9 +44,9 @@ var financialVersion = "1.1.1";
          */
 
         /**
-        * Fired when an error is received.
+        * Fired when an error occurs and no cached data is available.
         *
-        * @event rise-financial-error
+        * @event rise-financial-no-data
         */
 
         this.properties = {
@@ -261,21 +261,6 @@ var financialVersion = "1.1.1";
         financial.params = params;
       }
     }, {
-      key: "_handleNoNetwork",
-      value: function _handleNoNetwork() {
-        var _this2 = this;
-
-        this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
-          if (cachedData) {
-            _this2.fire("rise-financial-response", cachedData);
-          } else {
-            _this2.fire("rise-financial-no-data");
-          }
-        });
-
-        this._startTimer();
-      }
-    }, {
       key: "_handleData",
       value: function _handleData(e, resp) {
         var response = {
@@ -293,25 +278,26 @@ var financialVersion = "1.1.1";
       }
     }, {
       key: "_handleError",
-      value: function _handleError(e, resp) {
-        // error response provides no request or error objects, use instruments to provide some detail instead
+      value: function _handleError() {
+        var _this2 = this;
+
+        // error response provides no request or error message, use instruments to provide some detail instead
         var params = {
           event: "error",
           event_details: "Instrument List: " + JSON.stringify(this._instruments)
         };
 
-        // check for no network
-        if (this.$.financial.lastRequest && this.$.financial.lastRequest.status === 0) {
-          this._handleNoNetwork();
-        } else {
-          this._log(params);
+        this._log(params);
 
-          // delete cached data
-          this.$.data.deleteItem(this._getDataCacheKey());
+        this.$.data.getItem(this._getDataCacheKey(), function (cachedData) {
+          if (cachedData) {
+            _this2.fire("rise-financial-response", cachedData);
+          } else {
+            _this2.fire("rise-financial-no-data");
+          }
+        });
 
-          this.fire("rise-financial-error", resp);
-          this._startTimer();
-        }
+        this._startTimer();
       }
     }, {
       key: "_getSymbols",
