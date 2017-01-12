@@ -1,0 +1,28 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../byutv-jsonp/byutv-jsonp.html" />
+<link rel="import" href="../rise-logger/rise-logger.html">
+<link rel="import" href="../rise-data/rise-data.html">
+
+<dom-module id="rise-financial">
+  <template>
+    <byutv-jsonp
+      auto
+      id="financial"
+      callback-value="callback"
+      on-response="_handleData"
+      on-error="_handleError"
+      debounce-duration="300">
+    </byutv-jsonp>
+
+    <rise-logger id="logger"></rise-logger>
+    <rise-data id="data" endpoint="financial"></rise-data>
+
+    <content></content>
+  </template>
+
+  <script src="https://www.gstatic.com/firebasejs/3.6.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/3.6.1/firebase-database.js"></script>
+
+  <script src="rise-financial.js"></script>
+
+</dom-module>

@@ -1,0 +1,44 @@
+{
+  "name": "rise-financial",
+  "authors": [
+    "Rise Vision"
+  ],
+  "description": "Rise Vision web component for managing financial data",
+  "main": "rise-financial.html",
+  "keywords": [
+    "polymer",
+    "web-components",
+    "financial"
+  ],
+  "license": "GPLv3",
+  "homepage": "https://github.com/Rise-Vision/rise-financial",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "test"
+  ],
+  "dependencies": {
+    "byutv-jsonp": "^1.3.0",
+    "iron-ajax": "PolymerElements/iron-ajax#^1.0.0",
+    "polymer": "Polymer/polymer#^1.0.0",
+    "rise-data": "https://github.com/Rise-Vision/rise-data.git#1.1.0",
+    "rise-logger": "https://github.com/Rise-Vision/rise-logger.git#1.0.3"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "web-component-tester": "*"
+  },
+  "resolutions": {
+    "rise-logger": "1.0.3"
+  },
+  "_release": "91b4330057",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "91b4330057e5c010420cc7cf26366eb36885c63c"
+  },
+  "_source": "git://github.com/Rise-Vision/rise-financial.git",
+  "_target": "master",
+  "_originalSource": "Rise-Vision/rise-financial",
+  "_direct": true
+}
