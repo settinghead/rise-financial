@@ -9,7 +9,7 @@
   <link rel="import" href="../rise-financial.html">
 </head>
 <body unresolved>
-  <rise-financial financial-list="preview" instrument-fields='["instrument", "name", "lastPrice", "netChange"]'></rise-financial>
+  <rise-financial financial-list="-KZg7EhXONx26-LVLg5T" instrument-fields='["instrument", "name", "lastPrice", "netChange"]'></rise-financial>
 
   <script>
     const financial = document.querySelector( "rise-financial" );
@@ -18,12 +18,8 @@
       console.log( e.detail );
     } );
 
-    financial.addEventListener( "rise-financial-error", ( e ) => {
-      console.log( e.detail );
-    } );
-
     financial.addEventListener( "rise-financial-no-data", () => {
-      console.log( "No cached data available and no network" );
+      console.log( "No data available" );
     } );
 
     financial.go();
