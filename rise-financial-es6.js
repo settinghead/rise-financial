@@ -160,9 +160,9 @@
     }
 
     _handleInstruments( snapshot ) {
-      const instruments = snapshot.val();
+      const instruments = snapshot.val() || {};
 
-      this._instruments = instruments ? instruments : {};
+      this._instruments = sortInstruments( instruments );
       this._saveInstruments( this._instruments );
       this._instrumentsReceived = true;
 
@@ -253,9 +253,7 @@
     }
 
     _getSymbols( instruments ) {
-      const symbols = Object.keys( instruments ).map( ( key ) => {
-        return instruments[ key ].symbol;
-      } );
+      const symbols = instruments.map( ( { symbol } ) => symbol );
 
       return symbols.join( "|" );
     }
@@ -334,5 +332,19 @@
   }
 
   Polymer( RiseFinancial );
+
+  function sortInstruments( instrumentMap ) {
+    const list = Object.keys( instrumentMap )
+        .map( ( $id ) => Object.assign( { $id }, instrumentMap[ $id ] ) )
+        .sort( ( i1, i2 ) => _numberify( i1.order ) - _numberify( i2.order ) );
+
+    return list;
+  }
+
+  function _numberify( x ) {
+    // if number is not defined or is invalid, assign the infinity
+    // value to make sure the item stay at the bottom
+    return Number.isInteger( x ) ? x : Number.POSITIVE_INFINITY;
+  }
 
 } )();
